@@ -10,25 +10,41 @@ import (
 	"os/exec"
 )
 
-// CloneAllRepos clones all repos for an orgnaization
-func CloneAllRepos(orgname string) error {
+// CloneRepos clones all repos for an orgnaization
+func CloneRepos(orgname string, verbose bool) error {
+    allRepos := getAllRepos(orgname)
+	for _, repo := range allRepos {
+        if !repoExistsLocally(repo) {
+            clone(repo)
+        }
+	}
+	return nil
+}
+// UpdateRepos updates all repos for an orgnaization
+func UpdateRepos(orgname string, verbose bool) error {
+    allRepos := getAllRepos(orgname)
+	for _, repo := range allRepos {
+        if repoExistsLocally(repo) {
+            update(repo)
+        }
+	}
+	return nil
+}
+// CloneOrUpdateRepos clones or updates all repos for an orgnaization
+func CloneOrUpdateRepos(orgname string, verbose bool) error {
+    allRepos := getAllRepos(orgname)
+	for _, repo := range allRepos {
+        if repoExistsLocally(repo) {
+            update(repo)
+        } else {
+            clone(repo)
+        }
+	}
+	return nil
+}
+ 
+func getAllRepos(orgname string) []github.Repository {
 	client := getClient()
-	// org, resp, _ := client.Organizations.Get(orgname)
-	// switch resp.StatusCode {
-	// case 200:
-	// 	break
-	// case 401:
-	// 	log.Printf("Access not authorized.  Add your Github token to an environment variable GITHUB_TOKEN")
-	// 	return nil
-	// case 404:
-	// 	log.Printf("No GitHub organization found named %s", orgname)
-	// 	return nil
-	// default:
-	// 	log.Printf("Unknown status from organization lookup: %d", resp.StatusCode)
-	// 	return nil
-	// }
-	// check(github.CheckResponse(resp.Response))
-	// log.Printf("Found %d private repo(s) for %s", *org.TotalPrivateRepos, orgname)
 
 	opt := &github.RepositoryListByOrgOptions{
 		ListOptions: github.ListOptions{PerPage: 100},
@@ -38,7 +54,7 @@ func CloneAllRepos(orgname string) error {
 	for {
 		repos, resp, err := client.Repositories.ListByOrg(orgname, opt)
 		if err != nil {
-			return err
+            return nil
 		}
 		allRepos = append(allRepos, repos...)
 		if resp.NextPage == 0 {
@@ -46,17 +62,7 @@ func CloneAllRepos(orgname string) error {
 		}
 		opt.ListOptions.Page = resp.NextPage
 	}
-
-	for _, repo := range allRepos {
-		log.Println("Cloning " + *repo.Name + " (" + *repo.SSHURL + ")")
-		clone(*repo.SSHURL)
-	}
-	return nil
-}
-
-// RefreshAllRepos gets the latest for all repos
-func RefreshAllRepos(org string) error {
-	return nil
+    return allRepos
 }
 
 func getClient() *github.Client {
@@ -71,12 +77,33 @@ func getClient() *github.Client {
 	return client
 }
 
-func clone(cloneURL string) (int, error) {
-	app, err := exec.LookPath("git")
-	cmd := exec.Command(app, "clone", cloneURL)
+func repoExistsLocally(repo github.Repository) bool {
+    var fullPath = "./" + *repo.FullName
+    log.Printf("Fetching for %s", fullPath)
+    _, err := os.Stat(fullPath)
+    return err == nil
+}
 
-	path := "./"
-	cmd.Dir = path
+func update(repo github.Repository) (int, error) {
+    log.Printf("Updating %s (%s)", *repo.Name , *repo.SSHURL)
+	app, err := exec.LookPath("git")
+	check(err)
+	cmd := exec.Command(app, "pull")
+    cmd.Dir = "./" + *repo.FullName
+    return runCommand(cmd)
+}
+
+func clone(repo github.Repository) (int, error) {
+    log.Printf("Cloning %s (%s)", *repo.Name, *repo.SSHURL)
+	app, err := exec.LookPath("git")
+	check(err)
+	cmd := exec.Command(app, "clone", *repo.SSHURL)
+	cmd.Dir = "./"
+    return runCommand(cmd)
+}
+
+func runCommand(cmd *exec.Cmd) (int, error) {
+    
 	stdout, err := cmd.StdoutPipe()
 	check(err)
 
