@@ -9,6 +9,7 @@ script:
  - go build
  - go get golang.org/x/tools/cmd/vet
  - go vet
+ - go get github.com/stretchr/testify/assert
  - go test -v -tags=integration           # Run integration tests + unit tests
  - go test -v -tags=endtoend           # Run integration tests + unit tests
  - cd cmd
