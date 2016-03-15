@@ -8,41 +8,44 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 // CloneRepos clones all repos for an orgnaization
 func CloneRepos(orgname string, verbose bool) error {
-    allRepos := getAllRepos(orgname)
+	allRepos := getAllRepos(orgname)
 	for _, repo := range allRepos {
-        if !repoExistsLocally(repo) {
-            clone(repo)
-        }
+		if !repoExistsLocally(repo) {
+			clone(repo)
+		}
 	}
 	return nil
 }
+
 // UpdateRepos updates all repos for an orgnaization
 func UpdateRepos(orgname string, verbose bool) error {
-    allRepos := getAllRepos(orgname)
+	allRepos := getAllRepos(orgname)
 	for _, repo := range allRepos {
-        if repoExistsLocally(repo) {
-            update(repo)
-        }
+		if repoExistsLocally(repo) {
+			update(repo)
+		}
 	}
 	return nil
 }
+
 // CloneOrUpdateRepos clones or updates all repos for an orgnaization
 func CloneOrUpdateRepos(orgname string, verbose bool) error {
-    allRepos := getAllRepos(orgname)
+	allRepos := getAllRepos(orgname)
 	for _, repo := range allRepos {
-        if repoExistsLocally(repo) {
-            update(repo)
-        } else {
-            clone(repo)
-        }
+		if repoExistsLocally(repo) {
+			update(repo)
+		} else {
+			clone(repo)
+		}
 	}
 	return nil
 }
- 
+
 func getAllRepos(orgname string) []github.Repository {
 	client := getClient()
 
@@ -54,7 +57,7 @@ func getAllRepos(orgname string) []github.Repository {
 	for {
 		repos, resp, err := client.Repositories.ListByOrg(orgname, opt)
 		if err != nil {
-            return nil
+			return nil
 		}
 		allRepos = append(allRepos, repos...)
 		if resp.NextPage == 0 {
@@ -62,7 +65,8 @@ func getAllRepos(orgname string) []github.Repository {
 		}
 		opt.ListOptions.Page = resp.NextPage
 	}
-    return allRepos
+	log.Printf("Found %d repo(s) for the organization %s", len(allRepos), orgname)
+	return allRepos
 }
 
 func getClient() *github.Client {
@@ -78,38 +82,35 @@ func getClient() *github.Client {
 }
 
 func repoExistsLocally(repo github.Repository) bool {
-    var fullPath = "./" + *repo.FullName
-    log.Printf("Fetching for %s", fullPath)
-    _, err := os.Stat(fullPath)
-    return err == nil
+	cwd, _ := os.Getwd()
+	fullPath := filepath.Join(cwd, *repo.Name)
+	_, err := os.Stat(fullPath)
+	return err == nil
 }
 
 func update(repo github.Repository) (int, error) {
-    log.Printf("Updating %s (%s)", *repo.Name , *repo.SSHURL)
+	log.Printf("Updating %s (%s)", *repo.Name, *repo.SSHURL)
 	app, err := exec.LookPath("git")
 	check(err)
 	cmd := exec.Command(app, "pull")
-    cmd.Dir = "./" + *repo.FullName
-    return runCommand(cmd)
+	cmd.Dir = "./" + *repo.FullName
+	return runCommand(cmd)
 }
 
 func clone(repo github.Repository) (int, error) {
-    log.Printf("Cloning %s (%s)", *repo.Name, *repo.SSHURL)
+	log.Printf("Cloning %s (%s)", *repo.Name, *repo.SSHURL)
 	app, err := exec.LookPath("git")
 	check(err)
 	cmd := exec.Command(app, "clone", *repo.SSHURL)
 	cmd.Dir = "./"
-    return runCommand(cmd)
+	return runCommand(cmd)
 }
 
 func runCommand(cmd *exec.Cmd) (int, error) {
-    
 	stdout, err := cmd.StdoutPipe()
 	check(err)
-
 	err = cmd.Start()
 	check(err)
-
 	in := bufio.NewScanner(stdout)
 
 	for in.Scan() {
