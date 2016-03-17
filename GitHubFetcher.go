@@ -12,35 +12,35 @@ import (
 )
 
 // CloneRepos clones all repos for an orgnaization
-func CloneRepos(orgname string, verbose bool) error {
+func CloneRepos(orgname string, debug bool) error {
 	allRepos := getAllRepos(orgname)
 	for _, repo := range allRepos {
 		if !repoExistsLocally(repo) {
-			clone(repo)
+			clone(repo, debug)
 		}
 	}
 	return nil
 }
 
 // UpdateRepos updates all repos for an orgnaization
-func UpdateRepos(orgname string, verbose bool) error {
+func UpdateRepos(orgname string, debug bool) error {
 	allRepos := getAllRepos(orgname)
 	for _, repo := range allRepos {
 		if repoExistsLocally(repo) {
-			update(repo)
+			update(repo, debug)
 		}
 	}
 	return nil
 }
 
 // CloneOrUpdateRepos clones or updates all repos for an orgnaization
-func CloneOrUpdateRepos(orgname string, verbose bool) error {
+func CloneOrUpdateRepos(orgname string, debug bool) error {
 	allRepos := getAllRepos(orgname)
 	for _, repo := range allRepos {
 		if repoExistsLocally(repo) {
-			update(repo)
+			update(repo, debug)
 		} else {
-			clone(repo)
+			clone(repo, debug)
 		}
 	}
 	return nil
@@ -88,25 +88,28 @@ func repoExistsLocally(repo github.Repository) bool {
 	return err == nil
 }
 
-func update(repo github.Repository) (int, error) {
-	log.Printf("Updating %s (%s)", *repo.Name, *repo.SSHURL)
-	app, err := exec.LookPath("git")
-	check(err)
-	cmd := exec.Command(app, "pull")
-	cmd.Dir = "./" + *repo.FullName
-	return runCommand(cmd)
+func update(repo github.Repository, debug bool) (int, error) {
+	if debug {
+		log.Printf("Updating %s (%s)", *repo.Name, *repo.SSHURL)
+	}
+	directory := "./" + *repo.FullName
+	return runCommand(directory, "git", "pull", *repo.SSHURL, debug)
 }
 
-func clone(repo github.Repository) (int, error) {
-	log.Printf("Cloning %s (%s)", *repo.Name, *repo.SSHURL)
-	app, err := exec.LookPath("git")
+func clone(repo github.Repository, debug bool) (int, error) {
+	if debug {
+		log.Printf("Cloning %s (%s)", *repo.Name, *repo.SSHURL)
+	}
+	return runCommand("./", "git", "clone", *repo.SSHURL, debug)
+}
+
+// TODO, allow for any number of arguments
+func runCommand(directory string, command string, arguement1 string, arguement2 string, debug bool) (int, error) {
+	app, err := exec.LookPath(command)
 	check(err)
-	cmd := exec.Command(app, "clone", *repo.SSHURL)
+	cmd := exec.Command(app, arguement1, arguement2)
 	cmd.Dir = "./"
-	return runCommand(cmd)
-}
 
-func runCommand(cmd *exec.Cmd) (int, error) {
 	stdout, err := cmd.StdoutPipe()
 	check(err)
 	err = cmd.Start()
@@ -114,8 +117,9 @@ func runCommand(cmd *exec.Cmd) (int, error) {
 	in := bufio.NewScanner(stdout)
 
 	for in.Scan() {
-		// Uncomment if we want to include git output in the logs
-		//log.Printf(in.Text())
+		if debug {
+			log.Printf(in.Text())
+		}
 	}
 
 	err = cmd.Wait()
