@@ -13,7 +13,7 @@ var debug bool
 
 // SetDebug turns on debugging output on this library
 func SetDebug(d bool) {
-    debug = d
+	debug = d
 }
 
 // CloneRepos clones all repos for an orgnaization

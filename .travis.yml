@@ -4,14 +4,9 @@ go:
 
 install:
   - go get -t ./...
+  - go get github.com/stretchr/testify/assert  # This doesn't pick up the testing dependency as they are tagged (int and end to end)
 
 script:
- - go build
-# - go get golang.org/x/tools/cmd/vet
-# - go vet
-# - go get github.com/stretchr/testify/assert
-# - go test -v -tags=integration           # Run integration tests + unit tests
-# - go test -v -tags=endtoend           # Run integration tests + unit tests
-# - cd cmd
-# - cd repoclone
-# - go build
+ - go build cmd/repoclone/repoclone.go
+ - go test -v -tags=integration           # Run integration tests + unit tests
+ - go test -v -tags=endtoend           # Run integration tests + unit tests
