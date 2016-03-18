@@ -2,4 +2,5 @@
 .idea
 *.iml
 repoclone
+cmd/repoclone/repoclone
 target/
