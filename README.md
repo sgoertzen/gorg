@@ -6,6 +6,7 @@ Clone or update any number of GitHub repositories in a single command
 ## Install:
 ```
 go get github.com/sgoertzen/repoclone/cmd/repoclone
+go install github.com/sgoertzen/repoclone/cmd/repoclone
 ```
 
 ## Usage:
@@ -35,4 +36,8 @@ repoclone RepoFetch
 ### Running integration tests
 ```
 go test -tags=integration
+```
+### Running end to ennd tests
+```
+go test -tags=endtoend
 ```
