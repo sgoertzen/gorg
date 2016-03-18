@@ -10,7 +10,7 @@ import (
 
 func TestRepoNotExistsLocally(t *testing.T) {
 	var nonexisting = "doesnotexist"
-	repo := github.Repository{FullName: &nonexisting}
+	repo := github.Repository{Name: &nonexisting}
 
 	exists := repoExistsLocally(repo)
 	assert.False(t, exists)
@@ -18,7 +18,7 @@ func TestRepoNotExistsLocally(t *testing.T) {
 
 func TestRepoExistsLocally(t *testing.T) {
 	var existing = "cmd"
-	repo := github.Repository{FullName: &existing}
+	repo := github.Repository{Name: &existing}
 	exists := repoExistsLocally(repo)
 	assert.True(t, exists)
 }
