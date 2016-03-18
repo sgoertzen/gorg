@@ -21,7 +21,7 @@ func getConfiguration() config {
 	config := config{}
 	config.organization = kingpin.Arg("organization", "GitHub organization that should be cloned").Required().String()
 	config.debug = kingpin.Flag("debug", "Output debug information during the run.").Default("false").Short('d').Bool()
-	kingpin.Version("1.0.0")
+	kingpin.Version("1.1.0")
 	kingpin.CommandLine.VersionFlag.Short('v')
 	kingpin.CommandLine.HelpFlag.Short('?')
 	kingpin.Parse()

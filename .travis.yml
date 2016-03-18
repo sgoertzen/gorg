@@ -9,4 +9,3 @@ install:
 script:
  - go build ./cmd/repoclone/repoclone.go
  - go test -v -tags=integration           # Run integration tests
- - go test -v -tags=endtoend              # Run end to end tests
