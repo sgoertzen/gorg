@@ -14,6 +14,7 @@ var testDir = "../test_directory/"
 func TestMain(m *testing.M) {
 	setup()
 	output := m.Run()
+    debug = true
 	teardown()
 	os.Exit(output)
 }
@@ -29,7 +30,7 @@ func setup() {
 }
 
 func teardown() {
-	run("../", "rm", "-rf", testDir) // remove build dir
+	run("./", "rm", "-rf", testDir) // remove build dir
 }
 
 func TestClone(t *testing.T) {
