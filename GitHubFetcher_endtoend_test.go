@@ -33,7 +33,7 @@ func teardown() {
 }
 
 func TestClone(t *testing.T) {
-	fuzzyDir := testDir + "/fuzzy-octo-parakeet"
+	fuzzyDir := testDir + "fuzzy-octo-parakeet"
 	defer os.RemoveAll(fuzzyDir)
 
 	// Run the program to clone the repo
@@ -44,7 +44,7 @@ func TestClone(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	defer os.RemoveAll("fuzzy-octo-parakeet")
 
-	fuzzyDir := testDir + "/fuzzy-octo-parakeet"
+	fuzzyDir := testDir + "fuzzy-octo-parakeet"
 
 	// Run the program to clone the repo
 	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch")
