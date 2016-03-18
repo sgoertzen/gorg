@@ -1,46 +1,51 @@
 package repoclone
 
 import (
-	"bufio"
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 )
 
+var debug bool
+
+// SetDebug turns on debugging output on this library
+func SetDebug(d bool) {
+    debug = d
+}
+
 // CloneRepos clones all repos for an orgnaization
-func CloneRepos(orgname string, debug bool) error {
+func CloneRepos(orgname string) error {
 	allRepos := getAllRepos(orgname)
 	for _, repo := range allRepos {
 		if !repoExistsLocally(repo) {
-			clone(repo, debug)
+			clone(repo)
 		}
 	}
 	return nil
 }
 
 // UpdateRepos updates all repos for an orgnaization
-func UpdateRepos(orgname string, debug bool) error {
+func UpdateRepos(orgname string) error {
 	allRepos := getAllRepos(orgname)
 	for _, repo := range allRepos {
 		if repoExistsLocally(repo) {
-			update(repo, debug)
+			update(repo)
 		}
 	}
 	return nil
 }
 
 // CloneOrUpdateRepos clones or updates all repos for an orgnaization
-func CloneOrUpdateRepos(orgname string, debug bool) error {
+func CloneOrUpdateRepos(orgname string) error {
 	allRepos := getAllRepos(orgname)
 	for _, repo := range allRepos {
 		if repoExistsLocally(repo) {
-			update(repo, debug)
+			update(repo)
 		} else {
-			clone(repo, debug)
+			clone(repo)
 		}
 	}
 	return nil
@@ -88,46 +93,19 @@ func repoExistsLocally(repo github.Repository) bool {
 	return err == nil
 }
 
-func update(repo github.Repository, debug bool) (int, error) {
+func update(repo github.Repository) (int, error) {
 	if debug {
-		log.Printf("Updating %s (%s)", *repo.Name, *repo.SSHURL)
+		log.Printf("Updating %s", *repo.Name)
 	}
-	directory := "./" + *repo.FullName
-	return runCommand(directory, "git", "pull", *repo.SSHURL, debug)
+	directory := "./" + *repo.Name
+	return run(directory, "git", "pull")
 }
 
-func clone(repo github.Repository, debug bool) (int, error) {
+func clone(repo github.Repository) (int, error) {
 	if debug {
 		log.Printf("Cloning %s (%s)", *repo.Name, *repo.SSHURL)
 	}
-	return runCommand("./", "git", "clone", *repo.SSHURL, debug)
-}
-
-// TODO, allow for any number of arguments
-func runCommand(directory string, command string, arguement1 string, arguement2 string, debug bool) (int, error) {
-	app, err := exec.LookPath(command)
-	check(err)
-	cmd := exec.Command(app, arguement1, arguement2)
-	cmd.Dir = "./"
-
-	stdout, err := cmd.StdoutPipe()
-	check(err)
-	err = cmd.Start()
-	check(err)
-	in := bufio.NewScanner(stdout)
-
-	for in.Scan() {
-		if debug {
-			log.Printf(in.Text())
-		}
-	}
-
-	err = cmd.Wait()
-	if err != nil {
-		log.Println(err)
-		return 1, err
-	}
-	return 0, nil
+	return run("./", "git", "clone", *repo.SSHURL)
 }
 
 func check(e error) {
