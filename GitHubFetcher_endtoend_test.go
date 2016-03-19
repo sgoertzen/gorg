@@ -14,7 +14,7 @@ var testDir = "../test_directory/"
 func TestMain(m *testing.M) {
 	setup()
 	output := m.Run()
-    debug = true
+	debug = true
 	teardown()
 	os.Exit(output)
 }
@@ -47,8 +47,8 @@ func TestPath(t *testing.T) {
 	defer os.RemoveAll(fuzzyDir)
 
 	// Run the program to clone the repo
-    CloneOrUpdateRepos("RepoFetch", testDir)
-    
+	CloneOrUpdateRepos("RepoFetch", testDir)
+
 	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch")
 	assert.True(t, fileExists(fuzzyDir+"/SecondFile.txt"))
 }

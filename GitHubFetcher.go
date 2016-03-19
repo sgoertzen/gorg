@@ -96,7 +96,7 @@ func update(repo github.Repository, path string) (int, error) {
 	if debug {
 		log.Printf("Updating %s", *repo.Name)
 	}
-    directory := filepath.Join(path, *repo.Name)
+	directory := filepath.Join(path, *repo.Name)
 	return run(directory, "git", "pull")
 }
 
