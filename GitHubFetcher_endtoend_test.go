@@ -42,6 +42,17 @@ func TestClone(t *testing.T) {
 	assert.True(t, fileExists(fuzzyDir+"/SecondFile.txt"))
 }
 
+func TestPath(t *testing.T) {
+	fuzzyDir := testDir + "fuzzy-octo-parakeet"
+	defer os.RemoveAll(fuzzyDir)
+
+	// Run the program to clone the repo
+    CloneOrUpdateRepos("RepoFetch", testDir)
+    
+	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch")
+	assert.True(t, fileExists(fuzzyDir+"/SecondFile.txt"))
+}
+
 func TestUpdate(t *testing.T) {
 	defer os.RemoveAll("fuzzy-octo-parakeet")
 

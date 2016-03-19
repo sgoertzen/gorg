@@ -17,35 +17,35 @@ func SetDebug(d bool) {
 }
 
 // CloneRepos clones all repos for an orgnaization
-func CloneRepos(orgname string) error {
+func CloneRepos(orgname string, path string) error {
 	allRepos := getAllRepos(orgname)
 	for _, repo := range allRepos {
-		if !repoExistsLocally(repo) {
-			clone(repo)
+		if !repoExistsLocally(repo, path) {
+			clone(repo, path)
 		}
 	}
 	return nil
 }
 
 // UpdateRepos updates all repos for an orgnaization
-func UpdateRepos(orgname string) error {
+func UpdateRepos(orgname string, path string) error {
 	allRepos := getAllRepos(orgname)
 	for _, repo := range allRepos {
-		if repoExistsLocally(repo) {
-			update(repo)
+		if repoExistsLocally(repo, path) {
+			update(repo, path)
 		}
 	}
 	return nil
 }
 
 // CloneOrUpdateRepos clones or updates all repos for an orgnaization
-func CloneOrUpdateRepos(orgname string) error {
+func CloneOrUpdateRepos(orgname string, path string) error {
 	allRepos := getAllRepos(orgname)
 	for _, repo := range allRepos {
-		if repoExistsLocally(repo) {
-			update(repo)
+		if repoExistsLocally(repo, path) {
+			update(repo, path)
 		} else {
-			clone(repo)
+			clone(repo, path)
 		}
 	}
 	return nil
@@ -86,26 +86,25 @@ func getClient() *github.Client {
 	return client
 }
 
-func repoExistsLocally(repo github.Repository) bool {
-	cwd, _ := os.Getwd()
-	fullPath := filepath.Join(cwd, *repo.Name)
+func repoExistsLocally(repo github.Repository, path string) bool {
+	fullPath := filepath.Join(path, *repo.Name)
 	_, err := os.Stat(fullPath)
 	return err == nil
 }
 
-func update(repo github.Repository) (int, error) {
+func update(repo github.Repository, path string) (int, error) {
 	if debug {
 		log.Printf("Updating %s", *repo.Name)
 	}
-	directory := "./" + *repo.Name
+    directory := filepath.Join(path, *repo.Name)
 	return run(directory, "git", "pull")
 }
 
-func clone(repo github.Repository) (int, error) {
+func clone(repo github.Repository, path string) (int, error) {
 	if debug {
 		log.Printf("Cloning %s (%s)", *repo.Name, *repo.SSHURL)
 	}
-	return run("./", "git", "clone", *repo.SSHURL)
+	return run(path, "git", "clone", *repo.SSHURL)
 }
 
 func check(e error) {

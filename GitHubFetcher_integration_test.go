@@ -12,13 +12,15 @@ func TestRepoNotExistsLocally(t *testing.T) {
 	var nonexisting = "doesnotexist"
 	repo := github.Repository{Name: &nonexisting}
 
-	exists := repoExistsLocally(repo)
+	exists := repoExistsLocally(repo, "./")
 	assert.False(t, exists)
 }
 
 func TestRepoExistsLocally(t *testing.T) {
 	var existing = "cmd"
 	repo := github.Repository{Name: &existing}
-	exists := repoExistsLocally(repo)
+	exists := repoExistsLocally(repo, "./")
 	assert.True(t, exists)
 }
+
+// TODO: Need to remove dirs if they are no longer repos in this org
