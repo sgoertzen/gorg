@@ -3,11 +3,11 @@ package repoclone
 import (
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
-    "io/ioutil"
 )
 
 var debug bool
@@ -19,35 +19,43 @@ func SetDebug(d bool) {
 
 // Sync pull down all repos for an orgnaization
 func Sync(orgname string, path string, clone bool, update bool, remove bool) {
-    allRepos := getAllRepos(orgname)
-    var allReposMap map[string]bool
+	allRepos := getAllRepos(orgname)
+	allReposMap := make(map[string]bool)
 	for _, repo := range allRepos {
 		if !repoExistsLocally(repo, path) {
 			if clone {
-                doClone(repo, path)
-            }
+				doClone(repo, path)
+			}
 		} else if update {
-            doUpdate(repo, path)
-        }
-        allReposMap[*repo.Name] = true
+			doUpdate(repo, path)
+		}
+		allReposMap[*repo.Name] = true
 	}
-    if remove {
-        cleanup(path, allReposMap)
-    }
+	if remove {
+		cleanup(path, allReposMap)
+	}
 }
 
 func cleanup(path string, repos map[string]bool) {
-    files := getDirectories(path)
-    
+	files := getDirectories(path)
+
 	for _, directory := range files {
-    	if !directory.IsDir() {
+		if !directory.IsDir() {
+			if debug {
+				log.Printf("Skipping %s as it is not a directory", directory.Name())
+			}
 			continue
 		}
-        // check if the directory exists in the map
-        if _, b := repos[directory.Name()]; !b {
-            os.RemoveAll(path + directory.Name())
-        } 
-    }
+		// check if the directory exists in the map
+		if _, b := repos[directory.Name()]; !b {
+			if debug {
+				log.Printf("Removing %s", directory.Name())
+			}
+			os.RemoveAll(filepath.Join(path, directory.Name()))
+		} else if debug {
+			log.Printf("Skipping %s as it is found in the organization", directory.Name())
+		}
+	}
 }
 
 func getDirectories(path string) []os.FileInfo {
@@ -59,41 +67,6 @@ func getDirectories(path string) []os.FileInfo {
 	}
 	return files
 }
-
-// // CloneRepos clones all repos for an orgnaization
-// func CloneRepos(orgname string, path string) error {
-// 	allRepos := getAllRepos(orgname)
-// 	for _, repo := range allRepos {
-// 		if !repoExistsLocally(repo, path) {
-// 			clone(repo, path)
-// 		}
-// 	}
-// 	return nil
-// }
-
-// // UpdateRepos updates all repos for an orgnaization
-// func UpdateRepos(orgname string, path string) error {
-// 	allRepos := getAllRepos(orgname)
-// 	for _, repo := range allRepos {
-// 		if repoExistsLocally(repo, path) {
-// 			update(repo, path)
-// 		}
-// 	}
-// 	return nil
-// }
-
-// // CloneOrUpdateRepos clones or updates all repos for an orgnaization
-// func CloneOrUpdateRepos(orgname string, path string) error {
-// 	allRepos := getAllRepos(orgname)
-// 	for _, repo := range allRepos {
-// 		if repoExistsLocally(repo, path) {
-// 			update(repo, path)
-// 		} else {
-// 			clone(repo, path)
-// 		}
-// 	}
-// 	return nil
-// }
 
 func getAllRepos(orgname string) []github.Repository {
 	client := getClient()

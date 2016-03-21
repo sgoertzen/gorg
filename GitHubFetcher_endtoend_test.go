@@ -33,53 +33,53 @@ func teardown() {
 	run("./", "rm", "-rf", testDir) // remove build dir
 }
 
-// func TestClone(t *testing.T) {
-// 	fuzzyDir := testDir + "fuzzy-octo-parakeet"
-// 	defer os.RemoveAll(fuzzyDir)
+func TestClone(t *testing.T) {
+	fuzzyDir := testDir + "fuzzy-octo-parakeet"
+	defer os.RemoveAll(fuzzyDir)
 
-// 	// Run the program to clone the repo
-// 	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch")
-// 	assert.True(t, fileExists(fuzzyDir+"/SecondFile.txt"))
-// }
+	// Run the program to clone the repo
+	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch")
+	assert.True(t, fileExists(fuzzyDir+"/SecondFile.txt"))
+}
 
-// func TestPath(t *testing.T) {
-// 	fuzzyDir := testDir + "fuzzy-octo-parakeet"
-// 	defer os.RemoveAll(fuzzyDir)
+func TestPath(t *testing.T) {
+	fuzzyDir := testDir + "fuzzy-octo-parakeet"
+	defer os.RemoveAll(fuzzyDir)
 
-// 	// Run the program to clone the repo
-// 	CloneOrUpdateRepos("RepoFetch", testDir)
+	// Run the program to clone the repo
+	Sync("RepoFetch", testDir, true, true, false)
 
-// 	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch")
-// 	assert.True(t, fileExists(fuzzyDir+"/SecondFile.txt"))
-// }
+	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch")
+	assert.True(t, fileExists(fuzzyDir+"/SecondFile.txt"))
+}
 
-// func TestUpdate(t *testing.T) {
-// 	defer os.RemoveAll("fuzzy-octo-parakeet")
+func TestUpdate(t *testing.T) {
+	defer os.RemoveAll("fuzzy-octo-parakeet")
 
-// 	fuzzyDir := testDir + "fuzzy-octo-parakeet/"
+	fuzzyDir := testDir + "fuzzy-octo-parakeet/"
 
-// 	// Run the program to clone the repo
-// 	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch")
+	// Run the program to clone the repo
+	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch")
 
-// 	// Reset the repo to a previous commit
-// 	run(fuzzyDir, "git", "reset", "840a42c1029c20b7b510753162894f4e47dcde1f")
-// 	run(fuzzyDir, "rm", "SecondFile.txt")
-// 	assert.False(t, fileExists("SecondFile.txt"))
+	// Reset the repo to a previous commit
+	run(fuzzyDir, "git", "reset", "840a42c1029c20b7b510753162894f4e47dcde1f")
+	run(fuzzyDir, "rm", "SecondFile.txt")
+	assert.False(t, fileExists("SecondFile.txt"))
 
-// 	// Run the program again to pull this time
-// 	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch", "-d")
+	// Run the program again to pull this time
+	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch", "-d")
 
-// 	//assert that SecondFile does exist
-// 	assert.True(t, fileExists(fuzzyDir+"/SecondFile.txt"))
-// }
+	//assert that SecondFile does exist
+	assert.True(t, fileExists(fuzzyDir+"/SecondFile.txt"))
+}
 
 func TestRemove(t *testing.T) {
-    defer os.RemoveAll("fuzzyo-octoo-parakeet")
-    invalidRepoPath := testDir + "NotExistingInOrg" 
-    os.Mkdir(invalidRepoPath, 0777)
-    
-	// Run the program to clone the repo
+	defer os.RemoveAll("fuzzyo-octoo-parakeet")
+	invalidRepoPath := testDir + "NotExistingInOrg"
+	os.Mkdir(invalidRepoPath, 0777)
+
+	// Run the program to clone the repo, specifying cleanup (-r)
 	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch", "-r")
-    
-    assert.False(t, fileExists(invalidRepoPath))
+
+	assert.False(t, fileExists(invalidRepoPath))
 }
