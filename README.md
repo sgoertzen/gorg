@@ -15,6 +15,12 @@ usage: repoclone [<flags>] <organization>
 
 Flags:
   -?, --help     Show context-sensitive help (also try --help-long and --help-man).
+  -p, --directory="/Code/gocode/src/github.com/sgoertzen/repoclone"
+                 Directory where repos are/should be stored
+  -d, --debug    Output debug information during the run.
+  -c, --clone    Only clone repos (do not update)
+  -u, --update   Only update repos (do not clone).
+  -r, --remove   Remove local directories that are not in the organization
   -v, --version  Show application version.
 
 Args:
