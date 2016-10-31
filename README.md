@@ -43,7 +43,8 @@ repoclone RepoFetch
 ```
 go test -tags=integration
 ```
-### Running end to ennd tests
+### Running end to end tests
 ```
 go test -tags=endtoend
 ```
+Note: These tests will run against GitHub and therefore require an internet connection

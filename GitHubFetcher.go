@@ -1,13 +1,16 @@
 package repoclone
 
 import (
-	"github.com/google/go-github/github"
-	"golang.org/x/oauth2"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
+
+	"github.com/google/go-github/github"
+	"golang.org/x/oauth2"
 )
 
 var debug bool
@@ -15,6 +18,29 @@ var debug bool
 // SetDebug turns on debugging output on this library
 func SetDebug(d bool) {
 	debug = d
+}
+
+// ListPRs will list all the pull requests for an organization
+func ListPRs(orgname string) {
+	client := getClient()
+	allRepos := getAllRepos(orgname)
+	for _, repo := range allRepos {
+		//log.Printf("Analying repo: %s", *repo.Name)
+
+		opt := &github.PullRequestListOptions{State: "open", Direction: "asc"}
+		owner := "AKQASF"
+		prs, _, err := client.PullRequests.List(owner, *repo.Name, opt)
+		check(err)
+		//log.Printf("Number of PRs found: %s", len(prs))
+		for _, pr := range prs {
+			formatedTime := pr.CreatedAt.Format(time.RFC3339)
+			fmt.Printf("%s %s %s %s %s", *repo.Name, formatedTime, *pr.User.Login, *pr.Title, *pr.URL)
+		}
+	}
+}
+
+func printPR() {
+
 }
 
 // Sync pull down all repos for an orgnaization
@@ -81,7 +107,10 @@ func getAllRepos(orgname string) []github.Repository {
 		if err != nil {
 			return nil
 		}
-		allRepos = append(allRepos, repos...)
+		for _, repo := range repos {
+			allRepos = append(allRepos, *repo)
+		}
+		//allRepos = append(allRepos, repos...)
 		if resp.NextPage == 0 {
 			break
 		}
