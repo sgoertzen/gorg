@@ -1,13 +1,17 @@
 package repoclone
 
 import (
-	"github.com/google/go-github/github"
-	"golang.org/x/oauth2"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
+
+	"github.com/fatih/color"
+	"github.com/google/go-github/github"
+	"github.com/olekukonko/tablewriter"
+	"golang.org/x/oauth2"
 )
 
 var debug bool
@@ -15,6 +19,52 @@ var debug bool
 // SetDebug turns on debugging output on this library
 func SetDebug(d bool) {
 	debug = d
+}
+
+// ListPRs will list all the pull requests for an organization
+func ListPRs(orgname string) {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Repo", "Created", "Author", "Title", "Link"})
+
+	client := getClient()
+	allRepos := getAllRepos(orgname)
+	for _, repo := range allRepos {
+		if debug {
+			log.Printf("Analying repo: %s", *repo.Name)
+		}
+
+		opt := &github.PullRequestListOptions{State: "open", Direction: "asc"}
+		owner := "AKQASF"
+		prs, _, err := client.PullRequests.List(owner, *repo.Name, opt)
+		check(err)
+		if debug {
+			log.Printf("Number of PRs found: %d", len(prs))
+		}
+		for _, pr := range prs {
+			table.Append(formatPR(pr, repo))
+		}
+	}
+	table.Render()
+}
+
+func formatPR(pr *github.PullRequest, repo github.Repository) []string {
+	var formatedTime string
+
+	warnAfter := time.Now().AddDate(0, 0, -3)
+	errorAfter := time.Now().AddDate(0, 0, -7)
+
+	format := "2006-01-02"
+
+	if pr.CreatedAt.Before(errorAfter) {
+		formatedTime = color.RedString(pr.CreatedAt.Format(format))
+	} else if pr.CreatedAt.Before(warnAfter) {
+		formatedTime = color.YellowString(pr.CreatedAt.Format(format))
+	} else {
+		formatedTime = color.GreenString(pr.CreatedAt.Format(format))
+	}
+
+	//fmt.Printf("%s %s %s %s %s\n", *repo.Name, formatedTime, *pr.User.Login, *pr.Title, *pr.URL)
+	return []string{*repo.Name, formatedTime, *pr.User.Login, *pr.Title, *pr.URL}
 }
 
 // Sync pull down all repos for an orgnaization
@@ -81,7 +131,10 @@ func getAllRepos(orgname string) []github.Repository {
 		if err != nil {
 			return nil
 		}
-		allRepos = append(allRepos, repos...)
+		for _, repo := range repos {
+			allRepos = append(allRepos, *repo)
+		}
+		//allRepos = append(allRepos, repos...)
 		if resp.NextPage == 0 {
 			break
 		}
