@@ -14,7 +14,7 @@ type config struct {
 func main() {
 	c := getConfiguration()
 	repoclone.SetDebug(*c.debug)
-	repoclone.ListPRs(*c.organization)
+	repoclone.ListPullRequests(*c.organization)
 }
 
 func getConfiguration() config {
