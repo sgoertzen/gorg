@@ -1,8 +1,10 @@
 package repoclone
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
 	"log"
-	"os"
 	"time"
 
 	"github.com/fatih/color"
@@ -10,23 +12,24 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
+const dateFormat string = "2006-01-02"
+
 // PRSummary is a summary of a PR
 type PRSummary struct {
 	Repository *string
 	Created    *time.Time
 	Login      *string
 	Title      *string
-	Url        *string
+	URL        *string
 }
 
-// ListPullRequests will list all the pull requests for an organization
-func ListPullRequests(orgname string) {
-	pullRequests := GetPullRequests(orgname)
-	printPRsToConsole(pullRequests)
+// PRList is a list of pull requests
+type PRList struct {
+	summaries *[]PRSummary
 }
 
 // GetPullRequests will return an array of open pull requests
-func GetPullRequests(orgname string) *[]PRSummary {
+func GetPullRequests(orgname string, maxAge int) *PRList {
 	var summaries []PRSummary
 
 	client := getClient()
@@ -43,24 +46,42 @@ func GetPullRequests(orgname string) *[]PRSummary {
 		if debug {
 			log.Printf("Number of PRs found: %d", len(prs))
 		}
+
+		maxAge := time.Now().AddDate(0, 0, -maxAge)
 		// add to array
 		for _, pr := range prs {
-			summary := PRSummary{Repository: repo.Name, Created: pr.CreatedAt, Login: pr.User.Login, Title: pr.Title, Url: pr.URL}
-
-			summaries = append(summaries, summary)
+			if pr.CreatedAt.After(maxAge) {
+				summary := PRSummary{Repository: repo.Name, Created: pr.CreatedAt, Login: pr.User.Login, Title: pr.Title, URL: pr.URL}
+				summaries = append(summaries, summary)
+			}
 		}
 	}
-	return &summaries
+	return &PRList{summaries: &summaries}
 }
 
-func printPRsToConsole(prs *[]PRSummary) {
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Repo", "Created", "Author", "Title", "Link"})
+// AsJSON will print the PRList as JSON to the given writer
+func (list PRList) AsJSON(writer io.Writer) {
+	b, err := json.Marshal(list.summaries)
+	check(err)
+	writer.Write(b)
+}
 
-	for _, pr := range *prs {
+// AsText will return the projects in a readable test format.
+func (list PRList) AsText(w io.Writer) {
+	table := tablewriter.NewWriter(w)
+	table.SetHeader([]string{"Repo", "Created", "Author", "Title", "Link"})
+	for _, pr := range *list.summaries {
 		table.Append(formatPR(pr))
 	}
 	table.Render()
+}
+
+// AsCSV will return the projects in a readable test format.
+func (list PRList) AsCSV(w io.Writer) {
+	io.WriteString(w, "Repo,Created,Author,Title,Link\n")
+	for _, pr := range *list.summaries {
+		fmt.Fprintf(w, "%s,%s,%s,%s,%s\n", *pr.Repository, pr.Created.Format(dateFormat), *pr.Login, *pr.Title, *pr.URL)
+	}
 }
 
 func formatPR(prSummary PRSummary) []string {
@@ -69,17 +90,13 @@ func formatPR(prSummary PRSummary) []string {
 	warnAfter := time.Now().AddDate(0, 0, -3)
 	errorAfter := time.Now().AddDate(0, 0, -7)
 
-	format := "2006-01-02"
-
 	created := prSummary.Created
 	if created.Before(errorAfter) {
-		formatedTime = color.RedString(created.Format(format))
+		formatedTime = color.RedString(created.Format(dateFormat))
 	} else if created.Before(warnAfter) {
-		formatedTime = color.YellowString(created.Format(format))
+		formatedTime = color.YellowString(created.Format(dateFormat))
 	} else {
-		formatedTime = color.GreenString(created.Format(format))
+		formatedTime = color.GreenString(created.Format(dateFormat))
 	}
-
-	// TODO: Don't list these.  Find a way to turn a struct into a string array?
-	return []string{*prSummary.Repository, formatedTime, *prSummary.Login, *prSummary.Title, *prSummary.Url}
+	return []string{*prSummary.Repository, formatedTime, *prSummary.Login, *prSummary.Title, *prSummary.URL}
 }
