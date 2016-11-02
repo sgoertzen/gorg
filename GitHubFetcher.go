@@ -91,7 +91,9 @@ func getAllRepos(orgname string) []github.Repository {
 		}
 		opt.ListOptions.Page = resp.NextPage
 	}
-	log.Printf("Found %d repo(s) for the organization %s", len(allRepos), orgname)
+	if debug {
+		log.Printf("Found %d repo(s) for the organization %s", len(allRepos), orgname)
+	}
 	return allRepos
 }
 
