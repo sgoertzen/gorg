@@ -51,7 +51,7 @@ func GetPullRequests(orgname string, maxAge int) *PRList {
 		// add to array
 		for _, pr := range prs {
 			if pr.CreatedAt.After(maxAge) {
-				summary := PRSummary{Repository: repo.Name, Created: pr.CreatedAt, Login: pr.User.Login, Title: pr.Title, URL: pr.URL}
+				summary := PRSummary{Repository: repo.Name, Created: pr.CreatedAt, Login: pr.User.Login, Title: pr.Title, URL: pr.HTMLURL}
 				summaries = append(summaries, summary)
 			}
 		}
@@ -82,6 +82,27 @@ func (list PRList) AsCSV(w io.Writer) {
 	for _, pr := range *list.summaries {
 		fmt.Fprintf(w, "%s,%s,%s,%s,%s\n", *pr.Repository, pr.Created.Format(dateFormat), *pr.Login, *pr.Title, *pr.URL)
 	}
+}
+
+// AsJira will return the projects in a table format used by jira
+func (list PRList) AsJira(w io.Writer) {
+	io.WriteString(w, "||Repo||Created||Author||Title||Link||\n")
+	for _, pr := range *list.summaries {
+		fmt.Fprintf(w, "|%s|%s|%s|%s|%s|\n", *pr.Repository, pr.Created.Format(dateFormat), *pr.Login, *pr.Title, *pr.URL)
+	}
+}
+
+// AsHTML will return the projects in an HTML table format
+func (list PRList) AsHTML(w io.Writer) {
+	io.WriteString(w, "<body><table><thead><tr>")
+	io.WriteString(w, "<th>Repo</th><th>Created</th><th>Author</th><th>Title</th><th>Link</th>")
+	io.WriteString(w, "</tr></thead><tbody>")
+	for _, pr := range *list.summaries {
+		io.WriteString(w, "<tr>")
+		fmt.Fprintf(w, "<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td><a href=\"%s\">%s</a></td>", *pr.Repository, pr.Created.Format(dateFormat), *pr.Login, *pr.Title, *pr.URL, *pr.URL)
+		io.WriteString(w, "</tr>")
+	}
+	io.WriteString(w, "</tbody></table></body>")
 }
 
 func formatPR(prSummary PRSummary) []string {
