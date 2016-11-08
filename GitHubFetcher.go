@@ -25,10 +25,12 @@ func Sync(orgname string, path string, clone bool, update bool, remove bool) {
 	for _, repo := range allRepos {
 		if !repoExistsLocally(repo, path) {
 			if clone {
-				doClone(repo, path)
+				_, err := doClone(repo, path)
+				check(err)
 			}
 		} else if update {
-			doUpdate(repo, path)
+			_, err := doUpdate(repo, path)
+			check(err)
 		}
 		allReposMap[*repo.Name] = true
 	}
@@ -120,18 +122,19 @@ func doUpdate(repo github.Repository, path string) (int, error) {
 		log.Printf("Updating %s", *repo.Name)
 	}
 	directory := filepath.Join(path, *repo.Name)
-	return run(directory, "git", "pull")
+	return runWithRetries(directory, "git", "pull")
 }
 
 func doClone(repo github.Repository, path string) (int, error) {
 	if debug {
 		log.Printf("Cloning %s (%s)", *repo.Name, *repo.SSHURL)
 	}
-	return run(path, "git", "clone", *repo.SSHURL)
+	return runWithRetries(path, "git", "clone", *repo.SSHURL)
 }
 
 func check(e error) {
 	if e != nil {
+		log.Println(e)
 		panic(e)
 	}
 }

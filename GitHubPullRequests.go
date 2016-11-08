@@ -29,7 +29,7 @@ type PRList struct {
 }
 
 // GetPullRequests will return an array of open pull requests
-func GetPullRequests(orgname string, maxAge int) *PRList {
+func GetPullRequests(orgname string, minAge int, maxAge int) *PRList {
 	var summaries []PRSummary
 
 	client := getClient()
@@ -47,10 +47,11 @@ func GetPullRequests(orgname string, maxAge int) *PRList {
 			log.Printf("Number of PRs found: %d", len(prs))
 		}
 
-		maxAge := time.Now().AddDate(0, 0, -maxAge)
+		minDate := time.Now().AddDate(0, 0, -minAge)
+		maxDate := time.Now().AddDate(0, 0, -maxAge)
 		// add to array
 		for _, pr := range prs {
-			if pr.CreatedAt.After(maxAge) {
+			if pr.CreatedAt.Before(minDate) && pr.CreatedAt.After(maxDate) {
 				summary := PRSummary{Repository: repo.Name, Created: pr.CreatedAt, Login: pr.User.Login, Title: pr.Title, URL: pr.HTMLURL}
 				summaries = append(summaries, summary)
 			}
@@ -94,7 +95,7 @@ func (list PRList) AsJira(w io.Writer) {
 
 // AsHTML will return the projects in an HTML table format
 func (list PRList) AsHTML(w io.Writer) {
-	io.WriteString(w, "<body><table><thead><tr>")
+	io.WriteString(w, "<html><body><table><thead><tr>")
 	io.WriteString(w, "<th>Repo</th><th>Created</th><th>Author</th><th>Title</th><th>Link</th>")
 	io.WriteString(w, "</tr></thead><tbody>")
 	for _, pr := range *list.summaries {
@@ -102,7 +103,7 @@ func (list PRList) AsHTML(w io.Writer) {
 		fmt.Fprintf(w, "<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td><a href=\"%s\">%s</a></td>", *pr.Repository, pr.Created.Format(dateFormat), *pr.Login, *pr.Title, *pr.URL, *pr.URL)
 		io.WriteString(w, "</tr>")
 	}
-	io.WriteString(w, "</tbody></table></body>")
+	io.WriteString(w, "</tbody></table></body></html>")
 }
 
 func formatPR(prSummary PRSummary) []string {
