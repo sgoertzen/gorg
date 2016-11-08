@@ -6,7 +6,26 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"time"
 )
+
+var waitTime, _ = time.ParseDuration("10s")
+
+func runWithRetries(dir string, command string, arg ...string) (int, error) {
+	var result int
+	var err error
+	retries := 0
+	for {
+		result, err = run(dir, command, arg...)
+		if err == nil || retries > 5 {
+			break
+		}
+		retries++
+		log.Println("Waiting...")
+		time.Sleep(waitTime)
+	}
+	return result, err
+}
 
 // todo: move to shared space
 //func run(cmd *exec.Cmd, debug bool) (int, error) {
@@ -34,7 +53,6 @@ func run(dir string, command string, arg ...string) (int, error) {
 
 	err = cmd.Wait()
 	if err != nil {
-		log.Println(err)
 		return 1, err
 	}
 	return 0, nil
