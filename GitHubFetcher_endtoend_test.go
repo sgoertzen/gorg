@@ -3,13 +3,16 @@
 package repoclone
 
 import (
-	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	"log"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var testDir = "../test_directory/"
+var outputFile = "output.txt"
 
 func TestMain(m *testing.M) {
 	setup()
@@ -23,14 +26,16 @@ func setup() {
 	// Set this to true if you want more detail from the tests
 	debug = false
 
-	log.Println("Running build on repoclone")
+	log.Println("Building...")
 	run("./cmd/repoclone", "go", "build") // compile repoclone
-	log.Println("Creating directory")
+	run("./cmd/prlist", "go", "build")
+
 	run("./", "mkdir", testDir) // make test dir
 }
 
 func teardown() {
 	run("./", "rm", "-rf", testDir) // remove build dir
+	run("../repoclone/cmd/prlist", "rm", "", outputFile)
 }
 
 func TestClone(t *testing.T) {
@@ -82,4 +87,20 @@ func TestRemove(t *testing.T) {
 	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch", "-r")
 
 	assert.False(t, fileExists(invalidRepoPath))
+}
+
+func TestPRListWithDefaults(t *testing.T) {
+	// Run the program to clone the repo
+	run("./cmd/prlist", "prlist", "--filename="+outputFile, "RepoFetch")
+	assert.True(t, fileExists("./cmd/prlist/"+outputFile))
+	b, err := ioutil.ReadFile("./cmd/prlist/" + outputFile)
+	assert.Nil(t, err)
+
+	actual := "+---------------------+------------+-----------+--------------------------------+---------------------------------------------------------+\n" +
+		"|        REPO         |  CREATED   |  AUTHOR   |             TITLE              |                          LINK                           |\n" +
+		"+---------------------+------------+-----------+--------------------------------+---------------------------------------------------------+\n" +
+		"| fuzzy-octo-parakeet | 2016-11-09 | sgoertzen | Sample PR for end to end tests | https://github.com/RepoFetch/fuzzy-octo-parakeet/pull/1 |\n" +
+		"|                     |            |           | - DO NOT CLOSE                 |                                                         |\n" +
+		"+---------------------+------------+-----------+--------------------------------+---------------------------------------------------------+\n"
+	assert.Equal(t, actual, string(b))
 }
