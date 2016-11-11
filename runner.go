@@ -27,7 +27,6 @@ func runWithRetries(dir string, command string, arg ...string) (int, error) {
 	return result, err
 }
 
-// todo: move to shared space
 //func run(cmd *exec.Cmd, debug bool) (int, error) {
 func run(dir string, command string, arg ...string) (int, error) {
 	if debug {
