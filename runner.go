@@ -21,7 +21,7 @@ func runWithRetries(dir string, command string, arg ...string) (int, error) {
 			break
 		}
 		retries++
-		log.Println("Waiting...")
+		log.Println("Retrying...")
 		time.Sleep(waitTime)
 	}
 	return result, err
