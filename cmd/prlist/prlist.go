@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sgoertzen/repoclone"
+	"github.com/sgoertzen/gorg"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -21,9 +21,9 @@ type config struct {
 
 func main() {
 	c := getConfiguration()
-	repoclone.SetDebug(*c.debug)
+	gorg.SetDebug(*c.debug)
 
-	prlist := repoclone.GetPullRequests(*c.organization, *c.minAge, *c.maxAge)
+	prlist := gorg.GetPullRequests(*c.organization, *c.minAge, *c.maxAge)
 
 	if *c.filename != "" {
 		f, err := os.Create(*c.filename)
@@ -40,7 +40,7 @@ func main() {
 	}
 }
 
-func print(prlist *repoclone.PRList, w io.Writer, format string) {
+func print(prlist *gorg.PRList, w io.Writer, format string) {
 
 	switch strings.ToLower(format) {
 	case "text":

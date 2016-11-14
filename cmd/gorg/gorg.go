@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/sgoertzen/repoclone"
+	"github.com/sgoertzen/gorg"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"os"
 )
@@ -18,8 +18,8 @@ type config struct {
 // Clone all the repos of an orgnaization
 func main() {
 	c := getConfiguration()
-	repoclone.SetDebug(*c.debug)
-	repoclone.Sync(*c.organization, *c.directory, *c.clone, *c.update, *c.remove)
+	gorg.SetDebug(*c.debug)
+	gorg.Sync(*c.organization, *c.directory, *c.clone, *c.update, *c.remove)
 }
 
 func getConfiguration() config {

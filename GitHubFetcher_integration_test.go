@@ -1,6 +1,6 @@
 // +build integration
 
-package repoclone
+package gorg
 
 import (
 	"github.com/google/go-github/github"

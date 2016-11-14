@@ -1,4 +1,4 @@
-package repoclone
+package gorg
 
 import (
 	"bytes"

@@ -1,6 +1,6 @@
 // +build endtoend
 
-package repoclone
+package gorg
 
 import (
 	"io/ioutil"
@@ -27,7 +27,7 @@ func setup() {
 	debug = false
 
 	log.Println("Building...")
-	run("./cmd/repoclone", "go", "build") // compile repoclone
+	run("./cmd/gorg", "go", "build") // compile gorg
 	run("./cmd/prlist", "go", "build")
 
 	run("./", "mkdir", testDir) // make test dir
@@ -35,7 +35,7 @@ func setup() {
 
 func teardown() {
 	run("./", "rm", "-rf", testDir) // remove build dir
-	run("../repoclone/cmd/prlist", "rm", "", outputFile)
+	run("../gorg/cmd/prlist", "rm", "", outputFile)
 }
 
 func TestClone(t *testing.T) {
@@ -43,7 +43,7 @@ func TestClone(t *testing.T) {
 	defer os.RemoveAll(fuzzyDir)
 
 	// Run the program to clone the repo
-	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch")
+	run(testDir, "../gorg/cmd/gorg/gorg", "RepoFetch")
 	assert.True(t, fileExists(fuzzyDir+"/SecondFile.txt"))
 }
 
@@ -54,7 +54,7 @@ func TestPath(t *testing.T) {
 	// Run the program to clone the repo
 	Sync("RepoFetch", testDir, true, true, false)
 
-	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch")
+	run(testDir, "../gorg/cmd/gorg/gorg", "RepoFetch")
 	assert.True(t, fileExists(fuzzyDir+"/SecondFile.txt"))
 }
 
@@ -64,7 +64,7 @@ func TestUpdate(t *testing.T) {
 	fuzzyDir := testDir + "fuzzy-octo-parakeet/"
 
 	// Run the program to clone the repo
-	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch")
+	run(testDir, "../gorg/cmd/gorg/gorg", "RepoFetch")
 
 	// Reset the repo to a previous commit
 	run(fuzzyDir, "git", "reset", "840a42c1029c20b7b510753162894f4e47dcde1f")
@@ -72,7 +72,7 @@ func TestUpdate(t *testing.T) {
 	assert.False(t, fileExists("SecondFile.txt"))
 
 	// Run the program again to pull this time
-	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch", "-d")
+	run(testDir, "../gorg/cmd/gorg/gorg", "RepoFetch", "-d")
 
 	//assert that SecondFile does exist
 	assert.True(t, fileExists(fuzzyDir+"/SecondFile.txt"))
@@ -84,7 +84,7 @@ func TestRemove(t *testing.T) {
 	os.Mkdir(invalidRepoPath, 0777)
 
 	// Run the program to clone the repo, specifying cleanup (-r)
-	run(testDir, "../repoclone/cmd/repoclone/repoclone", "RepoFetch", "-r")
+	run(testDir, "../gorg/cmd/gorg/gorg", "RepoFetch", "-r")
 
 	assert.False(t, fileExists(invalidRepoPath))
 }

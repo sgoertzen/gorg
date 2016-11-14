@@ -1,21 +1,21 @@
-#RepoClone
+#gorg
 Clone or update any number of GitHub repositories in a single command
 
-[![Build Status](https://travis-ci.org/sgoertzen/repoclone.svg?branch=master)](https://travis-ci.org/sgoertzen/repoclone)
+[![Build Status](https://travis-ci.org/sgoertzen/gorg.svg?branch=master)](https://travis-ci.org/sgoertzen/gorg)
 
 ## Install:
 ```
-go get github.com/sgoertzen/repoclone/cmd/repoclone
-go install github.com/sgoertzen/repoclone/cmd/repoclone
+go get github.com/sgoertzen/gorg/cmd/gorg
+go install github.com/sgoertzen/gorg/cmd/gorg
 ```
 
 ## Usage:
 ```
-usage: repoclone [<flags>] <organization>
+usage: gorg [<flags>] <organization>
 
 Flags:
   -?, --help     Show context-sensitive help (also try --help-long and --help-man).
-  -p, --directory="/Code/gocode/src/github.com/sgoertzen/repoclone"
+  -p, --directory="/Code/gocode/src/github.com/sgoertzen/gorg"
                  Directory where repos are/should be stored
   -d, --debug    Output debug information during the run.
   -c, --clone    Only clone repos (do not update)
@@ -35,7 +35,7 @@ export GITHUB_TOKEN='YOUR_TOKEN_HERE'
 #### Examples
 Clone all repos from an organization named "RepoFetch"
 ```
-repoclone RepoFetch 
+gorg RepoFetch 
 ```
 
 ##Development
