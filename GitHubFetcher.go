@@ -127,9 +127,9 @@ func doUpdate(repo github.Repository, path string) (int, error) {
 
 func doClone(repo github.Repository, path string) (int, error) {
 	if debug {
-		log.Printf("Cloning %s (%s)", *repo.Name, *repo.SSHURL)
+		log.Printf("Cloning %s (%s)", *repo.Name, *repo.CloneURL)
 	}
-	return runWithRetries(path, "git", "clone", *repo.SSHURL)
+	return runWithRetries(path, "git", "clone", *repo.CloneURL)
 }
 
 func check(e error) {
