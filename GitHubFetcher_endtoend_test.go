@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var testDir = "../test_directory/"
+var testDir = "./test_directory/"
 var outputFile = "output.txt"
 
 func TestMain(m *testing.M) {
@@ -24,18 +24,15 @@ func TestMain(m *testing.M) {
 
 func setup() {
 	// Set this to true if you want more detail from the tests
-	debug = false
+	debug = true
 
 	log.Println("Building...")
-	run("./cmd/gorg", "go", "build") // compile gorg
-	run("./cmd/prlist", "go", "build")
-
-	run("./", "mkdir", testDir) // make test dir
+	run("./", "mkdir", testDir)                     // make test dir
+	run("./", "go", "build", testDir+"../cmd/gorg") // compile gorg
 }
 
 func teardown() {
 	run("./", "rm", "-rf", testDir) // remove build dir
-	run("../gorg/cmd/prlist", "rm", "", outputFile)
 }
 
 func TestClone(t *testing.T) {
@@ -43,7 +40,7 @@ func TestClone(t *testing.T) {
 	defer os.RemoveAll(fuzzyDir)
 
 	// Run the program to clone the repo
-	run(testDir, "../gorg/cmd/gorg/gorg", "RepoFetch")
+	run(testDir, "gorg", "clone", "RepoFetch")
 	assert.True(t, fileExists(fuzzyDir+"/SecondFile.txt"))
 }
 
@@ -54,7 +51,7 @@ func TestPath(t *testing.T) {
 	// Run the program to clone the repo
 	Sync("RepoFetch", testDir, true, true, false)
 
-	run(testDir, "../gorg/cmd/gorg/gorg", "RepoFetch")
+	run(testDir, "gorg", "clone", "RepoFetch")
 	assert.True(t, fileExists(fuzzyDir+"/SecondFile.txt"))
 }
 
@@ -64,7 +61,7 @@ func TestUpdate(t *testing.T) {
 	fuzzyDir := testDir + "fuzzy-octo-parakeet/"
 
 	// Run the program to clone the repo
-	run(testDir, "../gorg/cmd/gorg/gorg", "RepoFetch")
+	run(testDir, "gorg", "clone", "RepoFetch")
 
 	// Reset the repo to a previous commit
 	run(fuzzyDir, "git", "reset", "840a42c1029c20b7b510753162894f4e47dcde1f")
@@ -72,7 +69,7 @@ func TestUpdate(t *testing.T) {
 	assert.False(t, fileExists("SecondFile.txt"))
 
 	// Run the program again to pull this time
-	run(testDir, "../gorg/cmd/gorg/gorg", "RepoFetch", "-d")
+	run(testDir, "gorg", "clone", "RepoFetch", "-d")
 
 	//assert that SecondFile does exist
 	assert.True(t, fileExists(fuzzyDir+"/SecondFile.txt"))
@@ -84,16 +81,17 @@ func TestRemove(t *testing.T) {
 	os.Mkdir(invalidRepoPath, 0777)
 
 	// Run the program to clone the repo, specifying cleanup (-r)
-	run(testDir, "../gorg/cmd/gorg/gorg", "RepoFetch", "-r")
+	run(testDir, "gorg", "clone", "RepoFetch", "-r")
 
 	assert.False(t, fileExists(invalidRepoPath))
 }
 
 func TestPRListWithDefaults(t *testing.T) {
 	// Run the program to clone the repo
-	run("./cmd/prlist", "prlist", "--filename="+outputFile, "RepoFetch")
-	assert.True(t, fileExists("./cmd/prlist/"+outputFile))
-	b, err := ioutil.ReadFile("./cmd/prlist/" + outputFile)
+	run(testDir, "gorg", "prs", "--filename="+outputFile, "RepoFetch")
+	outputWithPath := testDir + outputFile
+	assert.True(t, fileExists(outputWithPath))
+	b, err := ioutil.ReadFile(outputWithPath)
 	assert.Nil(t, err)
 
 	actual := "+---------------------+------------+-----------+--------------------------------+---------------------------------------------------------+\n" +
