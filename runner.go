@@ -29,7 +29,7 @@ func runWithRetries(dir string, command string, arg ...string) (int, error) {
 
 func run(dir string, command string, arg ...string) (int, error) {
 	if debug {
-		log.Printf("Running: %s/%s %s", dir, command, arg)
+		log.Printf("Running: %s %s in %s", command, arg, dir)
 	}
 	cmd := exec.Command(command, arg...)
 
