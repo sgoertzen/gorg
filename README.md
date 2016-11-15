@@ -11,21 +11,27 @@ go install github.com/sgoertzen/gorg/cmd/gorg
 
 ## Usage:
 ```
-usage: gorg [<flags>] <organization>
+usage: gorg [<flags>] <command> <organization>
 
 Flags:
-  -?, --help     Show context-sensitive help (also try --help-long and --help-man).
-  -p, --directory="/Code/gocode/src/github.com/sgoertzen/gorg"
-                 Directory where repos are/should be stored
-  -d, --debug    Output debug information during the run.
-  -c, --clone    Only clone repos (do not update)
-  -u, --update   Only update repos (do not clone).
-  -r, --remove   Remove local directories that are not in the organization
-  -v, --version  Show application version.
+  -?, --help               Show context-sensitive help (also try --help-long and --help-man).
+  -p, --directory="/Users/sgoertzen/Code/gocode/src/github.com/sgoertzen/gorg"
+                           Directory where repos are/should be stored
+  -d, --debug              Output debug information during the run.
+  -c, --clone              Only clone repos (do not update)
+  -u, --update             Only update repos (do not clone).
+  -r, --remove             Remove local directories that are not in the organization
+  -f, --filename=FILENAME  The file in which the output should be stored. If this is left off the output will be printed to the console
+  -o, --format=text        Specify the output format. Should be either 'text', 'json', or 'csv'
+  -n, --minAge=0           Show PRs that have been open for this number of days
+  -x, --maxAge=36500       Show PRs that have been open less then this number of days
+  -v, --version            Show application version.
 
 Args:
+  <command>       The command to run on the organization
   <organization>  GitHub organization that should be cloned
 ```
+
 #### GitHub Token
 If you are accessing private repositories you will need to set an environment variable with your token.  If you don't have a token yet you can get one from here: https://github.com/settings/tokens 
 ```
@@ -35,7 +41,23 @@ export GITHUB_TOKEN='YOUR_TOKEN_HERE'
 #### Examples
 Clone all repos from an organization named "RepoFetch"
 ```
-gorg RepoFetch 
+gorg clone RepoFetch 
+```
+
+List open pull requests for an organization named "RepoFetch"
+```
+gorg prs RepoFetch 
+```
+
+List open branches for an organization named "RepoFetch" (coming soon)
+```
+gorg branches RepoFetch 
+```
+
+
+List open pull requests for an organization named "RepoFetch" within 7 to 10 days output to a file as json
+```
+gorg prs RepoFetch --maxAge=10 --minAge=7 --filename=text.txt --format=json
 ```
 
 ##Development
