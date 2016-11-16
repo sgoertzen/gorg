@@ -6,12 +6,19 @@ Clone or update any number of GitHub repositories in a single command
 ## Install:
 ```
 go get github.com/sgoertzen/gorg/cmd/gorg
-go install github.com/sgoertzen/gorg/cmd/gorg
 ```
 
 ## Usage:
 ```
 usage: gorg [<flags>] <command> <organization>
+
+The commands are:
+
+    clone     Clone all the repositories
+    prs       List all open pull requets
+    branches  List all open branches 
+
+gorg clone <organization>
 
 Flags:
   -?, --help               Show context-sensitive help (also try --help-long and --help-man).
@@ -28,7 +35,6 @@ Flags:
   -v, --version            Show application version.
 
 Args:
-  <command>       The command to run on the organization
   <organization>  GitHub organization that should be cloned
 ```
 
