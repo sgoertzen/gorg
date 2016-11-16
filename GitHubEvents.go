@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/fatih/color"
@@ -28,8 +31,8 @@ type EventList struct {
 	summaries *[]EventSummary
 }
 
-// GetPullRequests will return an array of open pull requests
-func GetPullRequests(orgname string, minAge int, maxAge int) *EventList {
+// GetEvents returns all matching pull requests or branches for the repo
+func GetEvents(command string, orgname string, minAge int, maxAge int) *EventList {
 	var summaries []EventSummary
 
 	client := getClient()
@@ -39,62 +42,69 @@ func GetPullRequests(orgname string, minAge int, maxAge int) *EventList {
 			log.Printf("Analying repo: %s", *repo.Name)
 		}
 
-		opt := &github.PullRequestListOptions{State: "open", Direction: "asc"}
-		owner := orgname
-		prs, _, err := client.PullRequests.List(owner, *repo.Name, opt)
-		check(err)
+		switch command {
+		case "prs":
+			summaries = listPRs(client, repo, orgname)
+		case "branches":
+			summaries = listBranches(client, repo, orgname)
+		}
 		if debug {
-			log.Printf("Number of PRs found: %d", len(prs))
+			log.Printf("Number of Events found: %d", len(summaries))
 		}
-
-		minDate := time.Now().AddDate(0, 0, -minAge)
-		maxDate := time.Now().AddDate(0, 0, -maxAge)
-		// add to array
-		for _, pr := range prs {
-			if pr.CreatedAt.Before(minDate) && pr.CreatedAt.After(maxDate) {
-				summary := EventSummary{Repository: repo.Name, LastUsed: pr.CreatedAt, Login: pr.User.Login, Title: pr.Title, URL: pr.HTMLURL}
-				summaries = append(summaries, summary)
-			}
-		}
+		summaries = filterEvents(summaries, minAge, maxAge)
 	}
 	return &EventList{summaries: &summaries}
 }
-
-// GetBranches will return an array of open branches
-func GetBranches(orgname string) *EventList {
+func listPRs(client *github.Client, repo github.Repository, orgname string) []EventSummary {
 	var summaries []EventSummary
+	opt := &github.PullRequestListOptions{State: "open", Direction: "asc"}
+	owner := orgname
+	prs, _, err := client.PullRequests.List(owner, *repo.Name, opt)
+	check(err)
+	for _, pr := range prs {
+		summary := EventSummary{Repository: repo.Name, LastUsed: pr.CreatedAt, Login: pr.User.Login, Title: pr.Title, URL: pr.HTMLURL}
+		summaries = append(summaries, summary)
+	}
+	return summaries
+}
 
-	client := getClient()
-	allRepos := getAllRepos(orgname)
-	for _, repo := range allRepos {
+func listBranches(client *github.Client, repo github.Repository, orgname string) []EventSummary {
+	var summaries []EventSummary
+	opt := &github.ListOptions{}
+	branches, _, err := client.Repositories.ListBranches(orgname, *repo.Name, opt)
+	check(err)
+	if debug {
+		log.Printf("Number of branches found: %d", len(branches))
+	}
+
+	for _, branch := range branches {
+		commit, _, _ := client.Repositories.GetCommit(orgname, *repo.Name, *branch.Commit.SHA)
+		date := commit.Commit.Author.Date
+		author := commit.Commit.Author.Name
+		url := commit.HTMLURL
 		if debug {
-			log.Printf("Analying repo: %s", *repo.Name)
+			log.Printf("Branch found with name: %s  commit: %s", *branch.Name, *branch.Commit.SHA)
 		}
-
-		opt := &github.ListOptions{}
-		owner := orgname
-		branches, _, err := client.Repositories.ListBranches(owner, *repo.Name, opt)
-		check(err)
-		if debug {
-			log.Printf("Number of branches found: %d", len(branches))
+		if *branch.Name == "master" {
+			continue
 		}
+		summary := EventSummary{Repository: repo.Name, Login: author, LastUsed: date, Title: branch.Name, URL: url}
+		summaries = append(summaries, summary)
+	}
+	return summaries
+}
 
-		for _, branch := range branches {
-			commit, _, _ := client.Repositories.GetCommit(owner, *repo.Name, *branch.Commit.SHA)
-			date := commit.Commit.Author.Date
-			author := commit.Commit.Author.Name
-			url := commit.HTMLURL
-			if debug {
-				log.Printf("Branch found with name: %s  commit: %s", *branch.Name, *branch.Commit.SHA)
-			}
-			if *branch.Name == "master" {
-				continue
-			}
-			summary := EventSummary{Repository: repo.Name, Login: author, LastUsed: date, Title: branch.Name, URL: url}
-			summaries = append(summaries, summary)
+func filterEvents(summaries []EventSummary, minAge int, maxAge int) []EventSummary {
+	minDate := time.Now().AddDate(0, 0, -minAge)
+	maxDate := time.Now().AddDate(0, 0, -maxAge)
+
+	var filteredSummaries []EventSummary
+	for _, event := range summaries {
+		if event.LastUsed.Before(minDate) && event.LastUsed.After(maxDate) {
+			filteredSummaries = append(filteredSummaries, event)
 		}
 	}
-	return &EventList{summaries: &summaries}
+	return filteredSummaries
 }
 
 // AsJSON will print the PRList as JSON to the given writer
@@ -180,4 +190,39 @@ func iface(list []string) []interface{} {
 		vals[i] = v
 	}
 	return vals
+}
+
+func printEvents(prlist *EventList, filename string, format string) {
+	if filename != "" {
+		f, err := os.Create(filename)
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+		w2 := bufio.NewWriter(f)
+		print(prlist, w2, format)
+		w2.Flush()
+		f.Sync()
+	} else {
+		print(prlist, os.Stdout, format)
+	}
+}
+
+// TODO: Move this somewhere
+func print(prlist *EventList, w io.Writer, format string) {
+
+	switch strings.ToLower(format) {
+	case "text":
+		prlist.AsText(w)
+	case "json":
+		prlist.AsJSON(w)
+	case "csv":
+		prlist.AsCSV(w)
+	case "confluence":
+		prlist.AsJira(w)
+	case "html":
+		prlist.AsHTML(w)
+	default:
+		panic("Unknown format " + format)
+	}
 }

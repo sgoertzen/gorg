@@ -31,14 +31,10 @@ func main() {
 	switch *c.command {
 	case "clone":
 		Sync(*c.organization, *c.directory, *c.clone, *c.update, *c.remove)
-	case "prs":
-		prlist := GetPullRequests(*c.organization, *c.minAge, *c.maxAge)
-		printEvents(prlist, *c.filename, *c.format)
-	case "branches":
-		branches := GetBranches(*c.organization)
-		printEvents(branches, *c.filename, *c.format)
+	case "prs", "branches":
+		events := GetEvents(*c.command, *c.organization, *c.minAge, *c.maxAge)
+		printEvents(events, *c.filename, *c.format)
 	}
-
 }
 
 // TODO: move this somewhere

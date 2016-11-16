@@ -42,13 +42,31 @@ func TestAsText(t *testing.T) {
 	list := makeEventListTestData()
 	buf := new(bytes.Buffer)
 	list.AsText(buf)
-	assert.Contains(t, buf.String(), "| Hello | \x1b[32m")
-	assert.Contains(t, buf.String(), "\x1b[0m | tuser  | Hello | http://somewhere.com |")
+	assert.Contains(t, buf.String(), "| Hello | ")
+	assert.Contains(t, buf.String(), " | tuser  | Hello | http://somewhere.com |")
+}
+
+func TestFilter(t *testing.T) {
+	list := makeEventListTestData().summaries
+	filtered := filterEvents(*list, 0, 100)
+	assert.Equal(t, 1, len(filtered), "Event got filtered incorrectly")
+}
+
+func TestFilterTooNew(t *testing.T) {
+	list := makeEventListTestData().summaries
+	filtered := filterEvents(*list, 10, 100)
+	assert.Equal(t, 0, len(filtered), "Event got filtered incorrectly")
+}
+
+func TestFilterTooOld(t *testing.T) {
+	list := makeEventListTestData().summaries
+	filtered := filterEvents(*list, 0, 5)
+	assert.Equal(t, 0, len(filtered), "Event got filtered incorrectly")
 }
 
 func makeEventListTestData() EventList {
 	repo := "Hello"
-	created := time.Now()
+	created := time.Now().AddDate(0, 0, -7)
 	login := "tuser"
 	url := "http://somewhere.com"
 	list := EventList{
