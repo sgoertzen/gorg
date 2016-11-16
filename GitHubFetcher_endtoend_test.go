@@ -1,6 +1,6 @@
 // +build endtoend
 
-package gorg
+package main
 
 import (
 	"io/ioutil"
@@ -27,8 +27,8 @@ func setup() {
 	debug = true
 
 	log.Println("Building...")
-	run("./", "mkdir", testDir)                     // make test dir
-	run("./", "go", "build", testDir+"../cmd/gorg") // compile gorg
+	run("./", "mkdir", testDir)             // make test dir
+	run("./", "go", "build", testDir+"../") // compile gorg
 }
 
 func teardown() {

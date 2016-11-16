@@ -1,12 +1,13 @@
 // +build integration
 
-package gorg
+package main
 
 import (
-	"github.com/google/go-github/github"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/google/go-github/github"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRepoNotExistsLocally(t *testing.T) {

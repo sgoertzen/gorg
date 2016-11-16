@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sgoertzen/gorg"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -27,13 +26,13 @@ type config struct {
 // Clone all the repos of an orgnaization
 func main() {
 	c := getConfiguration()
-	gorg.SetDebug(*c.debug)
+	SetDebug(*c.debug)
 
 	switch *c.command {
 	case "clone":
-		gorg.Sync(*c.organization, *c.directory, *c.clone, *c.update, *c.remove)
+		Sync(*c.organization, *c.directory, *c.clone, *c.update, *c.remove)
 	case "prs":
-		prlist := gorg.GetPullRequests(*c.organization, *c.minAge, *c.maxAge)
+		prlist := GetPullRequests(*c.organization, *c.minAge, *c.maxAge)
 		printPRs(prlist, *c.filename, *c.format)
 	case "branches":
 		// TODO output branches
@@ -42,7 +41,7 @@ func main() {
 }
 
 // TODO: move this somewhere
-func printPRs(prlist *gorg.PRList, filename string, format string) {
+func printPRs(prlist *PRList, filename string, format string) {
 	if filename != "" {
 		f, err := os.Create(filename)
 		if err != nil {
@@ -59,7 +58,7 @@ func printPRs(prlist *gorg.PRList, filename string, format string) {
 }
 
 // TODO: Move this somewhere
-func print(prlist *gorg.PRList, w io.Writer, format string) {
+func print(prlist *PRList, w io.Writer, format string) {
 
 	switch strings.ToLower(format) {
 	case "text":
