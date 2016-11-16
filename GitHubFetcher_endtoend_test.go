@@ -12,7 +12,6 @@ import (
 )
 
 var testDir = "./test_directory/"
-var outputFile = "output.txt"
 
 func TestMain(m *testing.M) {
 	setup()
@@ -88,6 +87,7 @@ func TestRemove(t *testing.T) {
 
 func TestPRListWithDefaults(t *testing.T) {
 	// Run the program to clone the repo
+	outputFile := "prs_output.txt"
 	run(testDir, "gorg", "prs", "--filename="+outputFile, "RepoFetch")
 	outputWithPath := testDir + outputFile
 	assert.True(t, fileExists(outputWithPath))
@@ -95,10 +95,27 @@ func TestPRListWithDefaults(t *testing.T) {
 	assert.Nil(t, err)
 
 	actual := "+---------------------+------------+-----------+--------------------------------+---------------------------------------------------------+\n" +
-		"|        REPO         |  CREATED   |  AUTHOR   |             TITLE              |                          LINK                           |\n" +
+		"|        REPO         |    DATE    |  AUTHOR   |             TITLE              |                          LINK                           |\n" +
 		"+---------------------+------------+-----------+--------------------------------+---------------------------------------------------------+\n" +
 		"| fuzzy-octo-parakeet | 2016-11-09 | sgoertzen | Sample PR for end to end tests | https://github.com/RepoFetch/fuzzy-octo-parakeet/pull/1 |\n" +
 		"|                     |            |           | - DO NOT CLOSE                 |                                                         |\n" +
 		"+---------------------+------------+-----------+--------------------------------+---------------------------------------------------------+\n"
+	assert.Equal(t, actual, string(b))
+}
+
+func TestBranchesWithDefaults(t *testing.T) {
+	// Run the program to clone the repo
+	outputFile := "branch_output.txt"
+	run(testDir, "gorg", "branches", "--filename="+outputFile, "RepoFetch")
+	outputWithPath := testDir + outputFile
+	assert.True(t, fileExists(outputWithPath))
+	b, err := ioutil.ReadFile(outputWithPath)
+	assert.Nil(t, err)
+
+	actual := "+---------------------+------------+----------------+----------+-------------------------------------------------------------------------------------------------------------+\n" +
+		"|        REPO         |    DATE    |     AUTHOR     |  TITLE   |                                                    LINK                                                     |\n" +
+		"+---------------------+------------+----------------+----------+-------------------------------------------------------------------------------------------------------------+\n" +
+		"| fuzzy-octo-parakeet | 2016-11-09 | Shawn Goertzen | SamplePR | https://api.github.com/repos/RepoFetch/fuzzy-octo-parakeet/commits/e8e173dac360ed447801caede05e3c87ee7c8893 |\n" +
+		"+---------------------+------------+----------------+----------+-------------------------------------------------------------------------------------------------------------+\n"
 	assert.Equal(t, actual, string(b))
 }
