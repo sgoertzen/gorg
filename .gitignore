@@ -3,3 +3,4 @@
 *.iml
 cmd/gorg/gorg
 target/
+*.zip
