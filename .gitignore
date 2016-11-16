@@ -1,6 +1,6 @@
 .DS_Store
 .idea
 *.iml
-cmd/gorg/gorg
+gorg
 target/
 *.zip

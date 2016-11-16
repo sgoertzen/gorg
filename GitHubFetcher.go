@@ -1,4 +1,4 @@
-package gorg
+package main
 
 import (
 	"io/ioutil"

@@ -1,12 +1,13 @@
 // +build integration
 
-package gorg
+package main
 
 import (
-	"github.com/google/go-github/github"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/google/go-github/github"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRepoNotExistsLocally(t *testing.T) {
@@ -18,7 +19,10 @@ func TestRepoNotExistsLocally(t *testing.T) {
 }
 
 func TestRepoExistsLocally(t *testing.T) {
-	var existing = "cmd"
+	existing := "Existing"
+	defer os.RemoveAll("./" + existing)
+	os.Mkdir(existing, 0777)
+
 	repo := github.Repository{Name: &existing}
 	exists := repoExistsLocally(repo, "./")
 	assert.True(t, exists)

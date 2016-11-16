@@ -7,6 +7,6 @@ install:
   - go get github.com/stretchr/testify/assert  # This doesn't pick up the testing dependency as they are tagged (int and end to end)
 
 script:
- - go build ./cmd/gorg/gorg.go
+ - go build .
  - go test -v -tags=integration     # Run integration tests
  - go test -v -tags=endtoend        # Run end to end tests
