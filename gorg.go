@@ -1,10 +1,7 @@
 package main
 
 import (
-	"bufio"
-	"io"
 	"os"
-	"strings"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -31,48 +28,9 @@ func main() {
 	switch *c.command {
 	case "clone":
 		Sync(*c.organization, *c.directory, *c.clone, *c.update, *c.remove)
-	case "prs":
-		prlist := GetPullRequests(*c.organization, *c.minAge, *c.maxAge)
-		printPRs(prlist, *c.filename, *c.format)
-	case "branches":
-		// TODO output branches
-	}
-
-}
-
-// TODO: move this somewhere
-func printPRs(prlist *PRList, filename string, format string) {
-	if filename != "" {
-		f, err := os.Create(filename)
-		if err != nil {
-			panic(err)
-		}
-		defer f.Close()
-		w2 := bufio.NewWriter(f)
-		print(prlist, w2, format)
-		w2.Flush()
-		f.Sync()
-	} else {
-		print(prlist, os.Stdout, format)
-	}
-}
-
-// TODO: Move this somewhere
-func print(prlist *PRList, w io.Writer, format string) {
-
-	switch strings.ToLower(format) {
-	case "text":
-		prlist.AsText(w)
-	case "json":
-		prlist.AsJSON(w)
-	case "csv":
-		prlist.AsCSV(w)
-	case "confluence":
-		prlist.AsJira(w)
-	case "html":
-		prlist.AsHTML(w)
-	default:
-		panic("Unknown format " + format)
+	case "prs", "branches":
+		events := GetEvents(*c.command, *c.organization, *c.minAge, *c.maxAge)
+		printEvents(events, *c.filename, *c.format)
 	}
 }
 
