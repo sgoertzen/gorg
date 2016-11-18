@@ -19,13 +19,13 @@ func SetDebug(d bool) {
 }
 
 // Sync pull down all repos for an orgnaization
-func Sync(orgname string, path string, clone bool, update bool, remove bool) {
+func Sync(orgname string, path string, clone bool, update bool, remove bool, useHTTPS bool) {
 	allRepos := getAllRepos(orgname)
 	allReposMap := make(map[string]bool)
 	for _, repo := range allRepos {
 		if !repoExistsLocally(repo, path) {
 			if clone {
-				_, err := doClone(repo, path)
+				_, err := doClone(repo, path, useHTTPS)
 				check(err)
 			}
 		} else if update {
@@ -125,11 +125,17 @@ func doUpdate(repo github.Repository, path string) (int, error) {
 	return runWithRetries(directory, "git", "pull")
 }
 
-func doClone(repo github.Repository, path string) (int, error) {
-	if debug {
-		log.Printf("Cloning %s (%s)", *repo.Name, *repo.CloneURL)
+func doClone(repo github.Repository, path string, useHTTPS bool) (int, error) {
+	var url string
+	if useHTTPS {
+		url = *repo.CloneURL
+	} else {
+		url = *repo.SSHURL
 	}
-	return runWithRetries(path, "git", "clone", *repo.CloneURL)
+	if debug {
+		log.Printf("Cloning %s (%s)", *repo.Name, url)
+	}
+	return runWithRetries(path, "git", "clone", url)
 }
 
 func check(e error) {

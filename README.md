@@ -75,4 +75,9 @@ go test -tags=integration
 ```
 go test -tags=endtoend
 ```
+Can also run these tests using docker. 
+```
+./buildDockerImage.sh
+docker run -it sgoertzen/gorg /bin/bash -c 'cd /go/src/github.com/sgoertzen/gorg/ && go test -tags=endtoend'
+```
 Note: These tests will run against GitHub and therefore require an internet connection
