@@ -40,7 +40,10 @@ func run(dir string, command string, arg ...string) (int, error) {
 	stderr, err := cmd.StderrPipe()
 	check(err)
 	err = cmd.Start()
-	check(err)
+	if err != nil {
+		log.Printf("Error encountered: %s", err)
+		return 1, err
+	}
 
 	in := bufio.NewScanner(io.MultiReader(stdout, stderr))
 	for in.Scan() {
@@ -51,6 +54,7 @@ func run(dir string, command string, arg ...string) (int, error) {
 
 	err = cmd.Wait()
 	if err != nil {
+		log.Printf("Error encountered: %s", err)
 		return 1, err
 	}
 	return 0, nil
