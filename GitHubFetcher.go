@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
@@ -79,15 +80,24 @@ func getAllRepos(orgname string) []github.Repository {
 	}
 	// get all pages of results
 	var allRepos []github.Repository
+	retries := 0
 	for {
 		repos, resp, err := client.Repositories.ListByOrg(orgname, opt)
 		if err != nil {
+			if debug {
+				log.Printf("Retrying list repos (attempt %d)", retries)
+			}
+			if retries < 5 {
+				time.Sleep(waitTime)
+				retries++
+				continue
+			}
+			log.Printf("Error while fetching repos: %s", err)
 			return nil
 		}
 		for _, repo := range repos {
 			allRepos = append(allRepos, *repo)
 		}
-		//allRepos = append(allRepos, repos...)
 		if resp.NextPage == 0 {
 			break
 		}

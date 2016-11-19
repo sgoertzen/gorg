@@ -39,6 +39,37 @@ func TestClone(t *testing.T) {
 	assert.True(t, fileExists(filepath.Join(fuzzyDir, "SecondFile.txt")), "Cloned repository files not found.")
 }
 
+func TestUpdate(t *testing.T) {
+	dir, err := ioutil.TempDir("", "update")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(dir) // clean up
+	fuzzyDir := filepath.Join(dir, "fuzzy-octo-parakeet")
+	repoFile := filepath.Join(fuzzyDir, "SecondFile.txt")
+
+	// Run the program to clone the repo
+	//ret, err := runWithRetries(dir, "gorg", "clone", "RepoFetch", "--https")
+	status, err := run(dir, "git", "clone", "https://github.com/RepoFetch/fuzzy-octo-parakeet.git")
+	assert.Equal(t, 0, status, "Non-zero return value from git clone call")
+	assert.Nil(t, err, "Unable to perform initial clone")
+	assert.True(t, fileExists(repoFile), "File not cloned correctly")
+
+	// Reset the repo to a previous commit
+	_, err = run(fuzzyDir, "git", "reset", "840a42c1029c20b7b510753162894f4e47dcde1f")
+	assert.Nil(t, err, "Error reseting the repo to a previous version")
+
+	run(fuzzyDir, "rm", repoFile)
+	assert.False(t, fileExists(repoFile), "File not deleted when repo reset to earlier commit.")
+
+	// Run the program again to pull this time
+	status, err = runWithRetries(dir, "gorg", "clone", "RepoFetch", "-u", "--https", "-d")
+	//status, err = run(fuzzyDir, "git", "pull")
+	assert.Equal(t, 0, status, "Non-zero return value from gorg call")
+	assert.Nil(t, err, "Unable to perform second clone")
+	assert.True(t, fileExists(repoFile), "File was not restored during update.")
+}
+
 func TestRemove(t *testing.T) {
 	dir, err := ioutil.TempDir("", "testremove")
 	if err != nil {
@@ -100,34 +131,4 @@ func TestBranchesWithDefaults(t *testing.T) {
 		"| fuzzy-octo-parakeet | 2016-11-09 | Shawn Goertzen | SamplePR | https://github.com/RepoFetch/fuzzy-octo-parakeet/commit/e8e173dac360ed447801caede05e3c87ee7c8893 |\n" +
 		"+---------------------+------------+----------------+----------+--------------------------------------------------------------------------------------------------+\n"
 	assert.Equal(t, expected, string(b))
-}
-
-func TestUpdate(t *testing.T) {
-	dir, err := ioutil.TempDir("", "update")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer os.RemoveAll(dir) // clean up
-	fuzzyDir := filepath.Join(dir, "fuzzy-octo-parakeet")
-	repoFile := filepath.Join(fuzzyDir, "SecondFile.txt")
-
-	// Run the program to clone the repo
-	//ret, err := runWithRetries(dir, "gorg", "clone", "RepoFetch", "--https")
-	status, err := run(dir, "git", "clone", "https://github.com/RepoFetch/fuzzy-octo-parakeet.git")
-	assert.Equal(t, 0, status, "Non-zero return value from git clone call")
-	assert.Nil(t, err, "Unable to perform initial clone")
-	assert.True(t, fileExists(repoFile), "File not cloned correctly")
-
-	// Reset the repo to a previous commit
-	_, err = run(fuzzyDir, "git", "reset", "840a42c1029c20b7b510753162894f4e47dcde1f")
-	assert.Nil(t, err, "Error reseting the repo to a previous version")
-
-	run(fuzzyDir, "rm", repoFile)
-	assert.False(t, fileExists(repoFile), "File not deleted when repo reset to earlier commit.")
-
-	// Run the program again to pull this time
-	status, err = runWithRetries(dir, "gorg", "clone", "RepoFetch", "-u", "--https", "-d")
-	assert.Equal(t, 0, status, "Non-zero return value from gorg call")
-	assert.Nil(t, err, "Unable to perform second clone")
-	assert.True(t, fileExists(repoFile), "File was not restored during update.")
 }
