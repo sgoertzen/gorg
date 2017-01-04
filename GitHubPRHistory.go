@@ -188,10 +188,19 @@ func formatHistory(h PRHistory, colorText bool) []string {
 	count := fmt.Sprintf("%d", h.Count)
 	comments := fmt.Sprintf("%d", (h.Comments / h.Count))
 	mergedPct := fmt.Sprintf("%d%%", (merged * 100 / h.Count))
-	avgAdd := fmt.Sprintf("%d", (h.Additions / uint32(merged)))
-	avgDel := fmt.Sprintf("%d", (h.Deletions / uint32(merged)))
 	avgTime := fmt.Sprintf("%d", (h.TotalTimeSeconds / uint64(h.Count)))
-	avgAddUnmerg := fmt.Sprintf("%d", (h.AdditionsUnmerged / uint32(unmerged)))
-	avgDelUnmerg := fmt.Sprintf("%d", (h.DeletionsUnmerged / uint32(unmerged)))
+
+	avgAdd := "0"
+	avgDel := "0"
+	if merged > 0 {
+		avgAdd = fmt.Sprintf("%d", (h.Additions / uint32(merged)))
+		avgDel = fmt.Sprintf("%d", (h.Deletions / uint32(merged)))
+	}
+	avgAddUnmerg := "0"
+	avgDelUnmerg := "0"
+	if unmerged > 0 {
+		avgAddUnmerg = fmt.Sprintf("%d", (h.AdditionsUnmerged / uint32(unmerged)))
+		avgDelUnmerg = fmt.Sprintf("%d", (h.DeletionsUnmerged / uint32(unmerged)))
+	}
 	return []string{h.Login, count, comments, mergedPct, avgAdd, avgDel, avgTime, avgAddUnmerg, avgDelUnmerg}
 }
