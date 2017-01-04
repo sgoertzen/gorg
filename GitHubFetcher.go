@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"time"
 
+	"github.com/cenkalti/backoff"
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 )
@@ -80,21 +80,18 @@ func getAllRepos(orgname string) []github.Repository {
 	}
 	// get all pages of results
 	var allRepos []github.Repository
-	retries := 0
 	for {
-		repos, resp, err := client.Repositories.ListByOrg(orgname, opt)
-		if err != nil {
-			if debug {
-				log.Printf("Retrying list repos (attempt %d)", retries)
-			}
-			if retries < 5 {
-				time.Sleep(waitTime)
-				retries++
-				continue
-			}
-			log.Printf("Error while fetching repos: %s", err)
-			return nil
+		var repos []*github.Repository
+		var resp *github.Response
+		var err error
+		operation := func() error {
+			repos, resp, err = client.Repositories.ListByOrg(orgname, opt)
+			return err
 		}
+		check(err)
+		err = backoff.Retry(operation, backoff.NewExponentialBackOff())
+		check(err)
+
 		for _, repo := range repos {
 			allRepos = append(allRepos, *repo)
 		}
