@@ -30,7 +30,7 @@ echo "Creating release ${version}"
 go get github.com/aktau/github-release
 
 # build our project
-go build ./cmd/gorg/gorg.go
+go build .
 
 # Tag and push to github
 git tag ${version} && git push --tags

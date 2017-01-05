@@ -33,13 +33,16 @@ func main() {
 	case "prs", "branches":
 		events := GetEvents(*c.command, *c.organization, *c.minAge, *c.maxAge)
 		printEvents(events, *c.filename, *c.format)
+	case "prhistory":
+		histories := GetHistory(*c.organization, *c.minAge, *c.maxAge)
+		printHistories(histories, *c.filename, *c.format)
 	}
 }
 
 func getConfiguration() config {
 	wd, _ := os.Getwd()
 	config := config{}
-	config.command = kingpin.Arg("command", "The command to run on the organization").Required().Enum("clone", "prs", "branches")
+	config.command = kingpin.Arg("command", "The command to run on the organization.  Valid options are: clone, prs, branches, prhistory").Required().Enum("clone", "prs", "branches", "prhistory")
 	config.organization = kingpin.Arg("organization", "GitHub organization that should be cloned").Required().String()
 	config.directory = kingpin.Flag("directory", "Directory where repos are/should be stored").Default(wd).Short('p').String()
 	config.debug = kingpin.Flag("debug", "Output debug information during the run.").Default("false").Short('d').Bool()
@@ -51,7 +54,7 @@ func getConfiguration() config {
 	config.minAge = kingpin.Flag("minAge", "Show PRs that have been open for this number of days").Default("0").Short('n').Int()
 	config.maxAge = kingpin.Flag("maxAge", "Show PRs that have been open less then this number of days").Default("36500").Short('x').Int()
 	config.cloneOverHTTPS = kingpin.Flag("https", "Clone repositories using HTTPS instead of SSL").Default("false").Short('h').Bool()
-	kingpin.Version("2.0.0")
+	kingpin.Version("2.1.0")
 	kingpin.CommandLine.VersionFlag.Short('v')
 	kingpin.CommandLine.HelpFlag.Short('?')
 	kingpin.Parse()
