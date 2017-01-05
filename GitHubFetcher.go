@@ -88,7 +88,6 @@ func getAllRepos(orgname string) []github.Repository {
 			repos, resp, err = client.Repositories.ListByOrg(orgname, opt)
 			return err
 		}
-		check(err)
 		err = backoff.Retry(operation, backoff.NewExponentialBackOff())
 		check(err)
 

@@ -6,9 +6,11 @@ import (
 	"io"
 	"log"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
+	"github.com/cenkalti/backoff"
 	"github.com/google/go-github/github"
 	"github.com/olekukonko/tablewriter"
 )
@@ -41,7 +43,6 @@ func GetHistory(orgname string, minAge int, maxAge int) *HistoryList {
 	client := getClient()
 	allRepos := getAllRepos(orgname)
 
-	count := 0
 	for _, repo := range allRepos {
 		if debug {
 			log.Printf("Analying repo: %s", *repo.Name)
@@ -51,29 +52,42 @@ func GetHistory(orgname string, minAge int, maxAge int) *HistoryList {
 		if debug {
 			log.Printf("Number of closed PRs found: %d", len(histories))
 		}
-		count++
-		if count > 10 {
-			break
-		}
 	}
 
 	var list []PRHistory
-	for _, value := range m {
-		list = append(list, value)
+	var keys []string
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		list = append(list, m[k])
 	}
 	return &HistoryList{histories: &list}
 }
 
-//TODO: Combine this with other listPRS and accept filter state
 func listPRHistory(client *github.Client, repo github.Repository, orgname string, m *map[string]PRHistory, minAge int, maxAge int) {
-
+	var err error
 	opt := &github.PullRequestListOptions{State: "closed"}
+	expBackoff := backoff.NewExponentialBackOff()
 	for {
-		prs, resp, err := client.PullRequests.List(orgname, *repo.Name, opt)
+		var prs []*github.PullRequest
+		var resp *github.Response
+		operation := func() error {
+			prs, resp, err = client.PullRequests.List(orgname, *repo.Name, opt)
+			return err
+		}
+		err = backoff.Retry(operation, expBackoff)
 		check(err)
 		prs = filterPullRequests(prs, minAge, maxAge)
+
 		for _, pr := range prs {
-			fullPR, _, err := client.PullRequests.Get(orgname, *repo.Name, *pr.Number)
+			var fullPR *github.PullRequest
+			operation2 := func() error {
+				fullPR, _, err = client.PullRequests.Get(orgname, *repo.Name, *pr.Number)
+				return err
+			}
+			err = backoff.Retry(operation2, expBackoff)
 			check(err)
 			author := *pr.User.Login
 			history := getOrCreateHistory(author, m)
