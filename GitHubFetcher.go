@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/cenkalti/backoff"
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 )
@@ -88,7 +87,7 @@ func getAllRepos(orgname string) []github.Repository {
 			repos, resp, err = client.Repositories.ListByOrg(orgname, opt)
 			return err
 		}
-		err = backoff.Retry(operation, backoff.NewExponentialBackOff())
+		err = makeGitHubCall(operation)
 		check(err)
 
 		for _, repo := range repos {

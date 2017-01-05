@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cenkalti/backoff"
 	"github.com/google/go-github/github"
 	"github.com/olekukonko/tablewriter"
 )
@@ -69,7 +68,7 @@ func GetHistory(orgname string, minAge int, maxAge int) *HistoryList {
 func listPRHistory(client *github.Client, repo github.Repository, orgname string, m *map[string]PRHistory, minAge int, maxAge int) {
 	var err error
 	opt := &github.PullRequestListOptions{State: "closed"}
-	expBackoff := backoff.NewExponentialBackOff()
+
 	for {
 		var prs []*github.PullRequest
 		var resp *github.Response
@@ -77,7 +76,7 @@ func listPRHistory(client *github.Client, repo github.Repository, orgname string
 			prs, resp, err = client.PullRequests.List(orgname, *repo.Name, opt)
 			return err
 		}
-		err = backoff.Retry(operation, expBackoff)
+		err = makeGitHubCall(operation)
 		check(err)
 		prs = filterPullRequests(prs, minAge, maxAge)
 
@@ -87,7 +86,7 @@ func listPRHistory(client *github.Client, repo github.Repository, orgname string
 				fullPR, _, err = client.PullRequests.Get(orgname, *repo.Name, *pr.Number)
 				return err
 			}
-			err = backoff.Retry(operation2, expBackoff)
+			err = makeGitHubCall(operation2)
 			check(err)
 			author := *pr.User.Login
 			history := getOrCreateHistory(author, m)
