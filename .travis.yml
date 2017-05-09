@@ -1,6 +1,6 @@
 language: go
 go:
- - 1.7
+ - 1.8
 
 install:
   - go get -t ./...
@@ -8,5 +8,7 @@ install:
 
 script:
  - go build .
- - go test -v -tags=integration     # Run integration tests
- - go test -v -tags=endtoend        # Run end to end tests
+ - go test -v -tags=endtoend -race -coverprofile=coverage.txt -covermode=atomic
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
