@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/google/go-github/github"
 	"github.com/olekukonko/tablewriter"
 )
@@ -73,7 +75,8 @@ func listPRHistory(client *github.Client, repo github.Repository, orgname string
 		var prs []*github.PullRequest
 		var resp *github.Response
 		operation := func() error {
-			prs, resp, err = client.PullRequests.List(orgname, *repo.Name, opt)
+			ctx := context.Background()
+			prs, resp, err = client.PullRequests.List(ctx, orgname, *repo.Name, opt)
 			return err
 		}
 		err = makeGitHubCall(operation)
@@ -83,7 +86,8 @@ func listPRHistory(client *github.Client, repo github.Repository, orgname string
 		for _, pr := range prs {
 			var fullPR *github.PullRequest
 			operation2 := func() error {
-				fullPR, _, err = client.PullRequests.Get(orgname, *repo.Name, *pr.Number)
+				ctx := context.Background()
+				fullPR, _, err = client.PullRequests.Get(ctx, orgname, *repo.Name, *pr.Number)
 				return err
 			}
 			err = makeGitHubCall(operation2)

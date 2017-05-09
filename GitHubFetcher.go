@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/google/go-github/github"
+	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 )
 
@@ -84,7 +85,8 @@ func getAllRepos(orgname string) []github.Repository {
 		var resp *github.Response
 		var err error
 		operation := func() error {
-			repos, resp, err = client.Repositories.ListByOrg(orgname, opt)
+			ctx := context.Background()
+			repos, resp, err = client.Repositories.ListByOrg(ctx, orgname, opt)
 			return err
 		}
 		err = makeGitHubCall(operation)
