@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -57,9 +58,10 @@ func GetEvents(command string, orgname string, minAge int, maxAge int) *EventLis
 }
 func listPRs(client *github.Client, repo github.Repository, orgname string) []EventSummary {
 	var summaries []EventSummary
+	ctx := context.Background()
 	opt := &github.PullRequestListOptions{State: "open", Direction: "asc"}
 	owner := orgname
-	prs, _, err := client.PullRequests.List(owner, *repo.Name, opt)
+	prs, _, err := client.PullRequests.List(ctx, owner, *repo.Name, opt)
 	check(err)
 	for _, pr := range prs {
 		summary := EventSummary{Repository: repo.Name, LastUsed: pr.CreatedAt, Login: pr.User.Login, Title: pr.Title, URL: pr.HTMLURL}
@@ -71,14 +73,15 @@ func listPRs(client *github.Client, repo github.Repository, orgname string) []Ev
 func listBranches(client *github.Client, repo github.Repository, orgname string) []EventSummary {
 	var summaries []EventSummary
 	opt := &github.ListOptions{}
-	branches, _, err := client.Repositories.ListBranches(orgname, *repo.Name, opt)
+	ctx := context.Background()
+	branches, _, err := client.Repositories.ListBranches(ctx, orgname, *repo.Name, opt)
 	check(err)
 	if debug {
 		log.Printf("Number of branches found: %d", len(branches))
 	}
 
 	for _, branch := range branches {
-		commit, _, _ := client.Repositories.GetCommit(orgname, *repo.Name, *branch.Commit.SHA)
+		commit, _, _ := client.Repositories.GetCommit(ctx, orgname, *repo.Name, *branch.Commit.SHA)
 		date := commit.Commit.Author.Date
 		author := commit.Commit.Author.Name
 		url := commit.HTMLURL

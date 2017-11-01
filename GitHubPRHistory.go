@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -68,12 +69,13 @@ func GetHistory(orgname string, minAge int, maxAge int) *HistoryList {
 func listPRHistory(client *github.Client, repo github.Repository, orgname string, m *map[string]PRHistory, minAge int, maxAge int) {
 	var err error
 	opt := &github.PullRequestListOptions{State: "closed"}
+	ctx := context.Background()
 
 	for {
 		var prs []*github.PullRequest
 		var resp *github.Response
 		operation := func() error {
-			prs, resp, err = client.PullRequests.List(orgname, *repo.Name, opt)
+			prs, resp, err = client.PullRequests.List(ctx, orgname, *repo.Name, opt)
 			return err
 		}
 		err = makeGitHubCall(operation)
@@ -83,7 +85,7 @@ func listPRHistory(client *github.Client, repo github.Repository, orgname string
 		for _, pr := range prs {
 			var fullPR *github.PullRequest
 			operation2 := func() error {
-				fullPR, _, err = client.PullRequests.Get(orgname, *repo.Name, *pr.Number)
+				fullPR, _, err = client.PullRequests.Get(ctx, orgname, *repo.Name, *pr.Number)
 				return err
 			}
 			err = makeGitHubCall(operation2)

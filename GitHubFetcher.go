@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -73,6 +74,7 @@ func getDirectories(path string) []os.FileInfo {
 
 func getAllRepos(orgname string) []github.Repository {
 	client := getClient()
+	ctx := context.Background()
 
 	opt := &github.RepositoryListByOrgOptions{
 		ListOptions: github.ListOptions{PerPage: 100},
@@ -84,7 +86,7 @@ func getAllRepos(orgname string) []github.Repository {
 		var resp *github.Response
 		var err error
 		operation := func() error {
-			repos, resp, err = client.Repositories.ListByOrg(orgname, opt)
+			repos, resp, err = client.Repositories.ListByOrg(ctx, orgname, opt)
 			return err
 		}
 		err = makeGitHubCall(operation)
