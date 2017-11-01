@@ -54,7 +54,7 @@ func getConfiguration() config {
 	config.minAge = kingpin.Flag("minAge", "Show PRs that have been open for this number of days").Default("0").Short('n').Int()
 	config.maxAge = kingpin.Flag("maxAge", "Show PRs that have been open less then this number of days").Default("36500").Short('x').Int()
 	config.cloneOverHTTPS = kingpin.Flag("https", "Clone repositories using HTTPS instead of SSL").Default("false").Short('h').Bool()
-	kingpin.Version("2.1.0")
+	kingpin.Version("2.1.1")
 	kingpin.CommandLine.VersionFlag.Short('v')
 	kingpin.CommandLine.HelpFlag.Short('?')
 	kingpin.Parse()
