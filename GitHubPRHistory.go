@@ -69,7 +69,7 @@ func GetHistory(orgname string, minAge int, maxAge int) *HistoryList {
 func listPRHistory(client *github.Client, repo github.Repository, orgname string, m *map[string]PRHistory, minAge int, maxAge int) {
 	var err error
 	opt := &github.PullRequestListOptions{State: "closed"}
-	ctx := context.Background()
+	ctx := context.TODO()
 
 	for {
 		var prs []*github.PullRequest

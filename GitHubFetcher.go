@@ -74,7 +74,7 @@ func getDirectories(path string) []os.FileInfo {
 
 func getAllRepos(orgname string) []github.Repository {
 	client := getClient()
-	ctx := context.Background()
+	ctx := context.TODO()
 
 	opt := &github.RepositoryListByOrgOptions{
 		ListOptions: github.ListOptions{PerPage: 100},

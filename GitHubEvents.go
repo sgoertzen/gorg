@@ -58,7 +58,7 @@ func GetEvents(command string, orgname string, minAge int, maxAge int) *EventLis
 }
 func listPRs(client *github.Client, repo github.Repository, orgname string) []EventSummary {
 	var summaries []EventSummary
-	ctx := context.Background()
+	ctx := context.TODO()
 	opt := &github.PullRequestListOptions{State: "open", Direction: "asc"}
 	owner := orgname
 	prs, _, err := client.PullRequests.List(ctx, owner, *repo.Name, opt)
@@ -73,7 +73,7 @@ func listPRs(client *github.Client, repo github.Repository, orgname string) []Ev
 func listBranches(client *github.Client, repo github.Repository, orgname string) []EventSummary {
 	var summaries []EventSummary
 	opt := &github.ListOptions{}
-	ctx := context.Background()
+	ctx := context.TODO()
 	branches, _, err := client.Repositories.ListBranches(ctx, orgname, *repo.Name, opt)
 	check(err)
 	if debug {
